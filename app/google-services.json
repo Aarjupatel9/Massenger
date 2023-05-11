@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "754777254417",
+    "project_id": "server-cl-com-emtyactivity",
+    "storage_bucket": "server-cl-com-emtyactivity.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:754777254417:android:57b077995d29ba2ea71fb0",
+        "android_client_info": {
+          "package_name": "com.massenger.mank.main"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "754777254417-uth7fvrfrd7knh2pke30betfa6htkm2d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6HJSORdUHA0H8n5gUHmiWeRvvtsNYwMc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "754777254417-uth7fvrfrd7knh2pke30betfa6htkm2d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

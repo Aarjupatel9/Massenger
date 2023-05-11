@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="-89dp">
+
+
+
+        <ImageView
+            android:id="@+id/userProfilePhoto"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/user_profile_page_main_marginStart"
+            android:layout_marginTop="@dimen/user_profile_page_main_marginStart"
+            android:adjustViewBounds="true"
+            android:background="@drawable/profile_image_border"
+            android:cropToPadding="true"
+            android:onClick="ProfilePhotoOnClick"
+            android:padding="1dp"
+
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_baseline_person_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabUpload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="40dp"
+            android:onClick="FabUploadOnClick"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/userProfilePhoto"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.504"
+            app:layout_constraintStart_toEndOf="@+id/userProfilePhoto"
+            app:layout_constraintTop_toTopOf="@+id/userProfilePhoto"
+            app:srcCompat="@android:drawable/ic_menu_upload"
+            tools:visibility="visible"
+            android:contentDescription="save profile photo" />
+
+        <TextView
+            android:id="@+id/userProfilePhotoLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginStart="44dp"
+            android:layout_marginTop="28dp"
+            android:text="Your Profile Photo "
+            android:onClick="userProfilePhotoLabelOnClick"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/userProfilePhoto" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraint_layout_for_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/user_profile_page_main_marginStart"
+            android:layout_marginTop="80dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/userProfilePhoto">
+
+            <TextView
+                android:id="@+id/userNameHeading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Name"
+                android:textSize="15sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/constraint_layout_for_1" />
+
+            <EditText
+                android:id="@+id/user_name_in_profile_page"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="16dp"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:textSize="15sp"
+                app:layout_constraintEnd_toStartOf="@id/userNameEditPenButton"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/userNameHeading"
+                tools:text="user anme" />
+
+            <ImageButton
+                android:id="@+id/userNameEditPenButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:background="@color/background_pure_white"
+                android:onClick="UpdateUserDisplayName"
+                app:layout_constraintBottom_toBottomOf="@+id/user_name_in_profile_page"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/user_name_in_profile_page"
+                app:srcCompat="@drawable/ic_edit_pen_user_profile" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraint_layout_for_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/user_profile_page_main_marginStart"
+            android:layout_marginTop="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/constraint_layout_for_1">
+
+            <TextView
+                android:id="@+id/userAboutHeading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="About"
+                android:textSize="15sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/constraint_layout_for_2" />
+
+            <EditText
+                android:id="@+id/user_about_in_profile_page"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="16dp"
+                android:hint="Write Your About Here"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:textSize="15sp"
+                app:layout_constraintEnd_toStartOf="@id/userAboutEditPenButton"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/userAboutHeading" />
+
+            <ImageButton
+                android:id="@+id/userAboutEditPenButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:background="@color/background_pure_white"
+                android:onClick="UpdateUserAboutInfo"
+                app:layout_constraintBottom_toBottomOf="@+id/user_about_in_profile_page"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/user_about_in_profile_page"
+                app:srcCompat="@drawable/ic_edit_pen_user_profile" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraint_layout_for_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/user_profile_page_main_marginStart"
+            android:layout_marginTop="20dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/constraint_layout_for_2">
+
+            <TextView
+                android:id="@+id/userOnlineStatusPrivacyEditHeading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select How You allow to Other to see Your Online Status"
+                android:textSize="13sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/constraint_layout_for_3" />
+
+
+            <RadioGroup
+                android:id="@+id/radioGroupForSelectingPrivacy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/userOnlineStatusPrivacyEditHeading">
+
+                <RadioButton
+                    android:id="@+id/onlineStatusAllowToAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="allow other to see your lass seen" />
+
+                <RadioButton
+                    android:id="@+id/onlineStatusDenyToAll"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Deny other to see your lass seen" />
+            </RadioGroup>
+
+            <ImageButton
+                android:id="@+id/userOnlineStatusPrivacyEditPenButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:background="@color/background_pure_white"
+                android:onClick="UpdateUserOnlineStatusPrivacy"
+                app:layout_constraintBottom_toBottomOf="@+id/radioGroupForSelectingPrivacy"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/radioGroupForSelectingPrivacy"
+                app:srcCompat="@drawable/ic_edit_pen_user_profile" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+        <ProgressBar
+            android:id="@+id/ProfileUploadProgressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="28dp"
+            android:onClick="LogOutFromApp"
+            android:text="LogOut"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+
+
+        <!--        <LinearLayout-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:background="@drawable/shapes_try_shape"-->
+<!--            android:orientation="horizontal"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toBottomOf="@+id/constraint_layout_for_3">-->
+<!--            -->
+<!--            -->
+<!--            -->
+<!--        </LinearLayout>-->
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+

@@ -1,0 +1,20 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16sp</dimen>
+    <dimen name="activity_vertical_margin">16sp</dimen>
+    <dimen name="fab_margin">16sp</dimen>
+    <dimen name="appbar_padding">16sp</dimen>
+    <dimen name="user_profile_page_main_marginStart">40dp</dimen>
+
+    <dimen name="MainMassege_size">15sp</dimen>
+
+
+    <!--dimes for design 3-->
+    <dimen name="headerTextSize">30sp</dimen>
+    <dimen name="newsMoreTextSize">12sp</dimen>
+    <dimen name="loginCardRadius">20dp</dimen>
+    <dimen name="loginViewsMargin">20dp</dimen>
+
+    <dimen name="signup_text_margin_top">10dp</dimen>
+
+</resources>

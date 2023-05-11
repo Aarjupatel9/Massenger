@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">Massenger</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="prompt_re_enter_password">Enter password again</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="title_activity_status_view_page">StatusViewPageActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="Contact_name_in_particular_page">User Name</string>
+    <string name="tab_name_1">CHATS</string>
+    <string name="tab_name_2">STATUS</string>
+    <string name="tab_name_3">CALLS</string>
+
+
+    <string name="vertical_ellipsis_3_dot">&#8942;</string>
+    <string name="CMDVMassegeInputHint">Write massege</string>
+    <string name="CMDVShareLocation">Share Location</string>
+    <string name="CMDVSendMassegeDescription">Send Massege</string>
+
+    <style name="Theme.TabedActivity.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.MainPageHeader.Dark" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.TabedActivity.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+
+
+
+    <string name="register">REGISTER</string>
+    <string name="login_phone_number_hint">Phone Number</string>
+    <string name="login_password_hint">Password</string>
+    <string name="signup_login_hint">Already have an account? Sign In</string>
+    <string name="login_signup_hint">Don\'t have an account? Sign Up</string>
+    <string name="login_name_hint">Name</string>
+    <string name="login_mobile_number_hint">Mobile Number</string>
+    <string name="reenter_password_heading">Enter same password again</string>
+    <string name="signup">Signup</string>
+    <string name="textview">TextView</string>
+    <string name="all_contact_sync_activity_header_text">Select Contact</string>
+
+
+</resources>

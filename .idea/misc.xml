@@ -1,0 +1,77 @@
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/b_user_image.xml" value="0.1505" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/ic_check_all.xml" value="0.143" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/ic_edit_pen_user_profile.xml" value="0.143" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/ic_massege_reach_icon.xml" value="0.143" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/ic_massege_read_icon.xml" value="0.143" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/ic_massege_send_button_icon.xml" value="0.143" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/ic_massege_sent_icon.xml" value="0.143" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/ic_offline_massege_state_icon.xml" value="0.143" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/drawable/null_user_image.xml" value="0.1505" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/activity_all_contact_of_user_in_device_view.xml" value="0.21770833333333334" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/activity_contact_massege_details_view.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/activity_home_page_with_contact.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/activity_main.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/allcontact_sync_devider_label.xml" value="0.22" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/app_starting_view_page.xml" value="0.153125" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/contact_details_from_massege_view_page.xml" value="0.2875" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/contact_row_for_all_contact_sync_page.xml" value="0.3333333333333333" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/contactviewrow.xml" value="0.18072916666666666" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/massege_design_row.xml" value="0.22" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/massege_design_row_for_user.xml" value="0.3333333333333333" />
+        <entry key="..\:/project-work/android-studio-project/com.massenger.mank.main/app/src/main/res/layout/user_profile_upload_activity.xml" value="0.22" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/b_user_image.xml" value="0.2345" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/ic_check_all.xml" value="0.1185" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/ic_edit_pen_user_profile.xml" value="0.1185" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/ic_massege_reach_icon.xml" value="0.2345" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/ic_massege_read_icon.xml" value="0.2345" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/ic_massege_send_button_icon.xml" value="0.1185" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/ic_massege_sent_icon.xml" value="0.2345" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/ic_offline_massege_state_icon.xml" value="0.2015" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/drawable/ic_sentrow.xml" value="0.146" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/activity_all_contact_of_user_in_device_view.xml" value="0.26851851851851855" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/activity_contact_massege_details_view.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/activity_home_page_with_contact.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/activity_status_view_page.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/app_starting_view_page.xml" value="0.14666666666666667" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/contactviewrow.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/massege_design_row.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/massege_design_row_for_user.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/layout/user_profile_upload_activity.xml" value="0.2490974729241877" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1" />
+        <entry key="..\:/project-work/android-studio-project/server-cl-com-emtyActivity/app/src/main/res/mipmap-anydpi-v26/ic_massege_sentIcon.xml" value="0.2345" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.162" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/drawable/b_user_image.xml" value="0.1" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/drawable/ic_baseline_contact_list_24.xml" value="0.162" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/drawable/ic_baseline_copyright_24_temp.xml" value="0.162" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/drawable/ic_baseline_person_24.xml" value="0.126" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/drawable/ic_baseline_send_24.xml" value="0.162" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/drawable/profile_image_border.xml" value="0.1895" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/activity_all_contact_of_user_in_device_view.xml" value="0.3333333333333333" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/activity_contact_massege_details_view.xml" value="0.22" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/activity_home_page_with_contact.xml" value="0.3086190917516219" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/activity_login2.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/activity_main.xml" value="0.2841025641025641" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/activity_scrolling.xml" value="0.2875" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/activity_status_view_page.xml" value="0.28854166666666664" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/contactviewrow.xml" value="0.3333333333333333" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/fragment_second.xml" value="0.13177083333333334" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/loginactivity_main.xml" value="0.22" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/massege_design_row.xml" value="0.2838709677419355" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/massege_design_row_for_user.xml" value="0.2875" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/registeractivity_main.xml" value="0.2875" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/layout/user_profile_upload_activity.xml" value="0.22" />
+        <entry key="..\:/project-work/android-studio-project/serverclcomemtyActivity/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.199" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="jbr-17" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
