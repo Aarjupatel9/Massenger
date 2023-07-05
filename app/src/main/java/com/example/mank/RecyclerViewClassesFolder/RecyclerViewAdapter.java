@@ -10,6 +10,8 @@ import static com.google.android.material.internal.ContextUtils.getActivity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.Gravity;
@@ -83,14 +85,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public void onBindViewHolder(@NonNull RecyclerViewAdapter.ViewHolder holder, int position) {
         ContactWithMassengerEntity contact = contactList.get(position);
 
-        if (contact.getC_ID() == user_login_id) {
-            String name = contact.getDisplay_name() + " (self)";
+        if (contact.getCID().equals(user_login_id)) {
+            String name = contact.getDisplayName() + " (self)";
             holder.Display_Name.setText(name);
         } else {
-            if (contact.getDisplay_name() == null) {
+            if (contact.getDisplayName() == null) {
                 holder.Display_Name.setText(String.valueOf(contact.getMobileNumber()));
             } else {
-                holder.Display_Name.setText(contact.getDisplay_name());
+                holder.Display_Name.setText(contact.getDisplayName());
             }
         }
 
@@ -100,12 +102,19 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             holder.constraintLayout.setBackgroundColor(Color.argb(75, 100, 159, 107));
         }
 
-        holder.DPImageButton.setImageDrawable(MainActivityClassForContext.getAppContext().getResources().getDrawable(R.drawable.ic_baseline_person_24));
+        if(contact.getUserImage() == null) {
+            holder.DPImageButton.setImageDrawable(MainActivityClassForContext.getAppContext().getResources().getDrawable(R.drawable.ic_baseline_person_24));
+        }else {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(contact.getUserImage(), 0, contact.getUserImage().length);
+            holder.DPImageButton.setImageBitmap(bitmap);
+        }
+
         if (contact.getNewMassegeArriveValue() == 0) {
             holder.new_massege_arrive_value.setText("");
         } else {
             holder.new_massege_arrive_value.setText(String.valueOf(contact.getNewMassegeArriveValue()));
         }
+
 
     }
 
@@ -152,21 +161,21 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             Log.d("log-clicked", "you clicked Contact recyclerView_main");
             int position = this.getAdapterPosition();
             ContactWithMassengerEntity contact = contactList.get(position);
-            String name = contact.getDisplay_name();
+            String name = contact.getDisplayName();
             long phone = contact.getMobileNumber();
-            long C_ID = contact.getC_ID();
-            Contact_page_opened_id = C_ID;
-            String ContactName = contact.getDisplay_name();
+            String CID = contact.getCID();
+            Contact_page_opened_id = CID;
+            String ContactName = contact.getDisplayName();
 
-            Toast.makeText(context, "The position is " + String.valueOf(position) +
-                    " Name: " + name + ", Phone:" + phone + ", c_ID:"+C_ID, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "The position is " + String.valueOf(position) +
+//                    " Name: " + name + ", Phone:" + phone + ", c_ID:"+CID, Toast.LENGTH_SHORT).show();
 
             Intent intent = new Intent(context.getApplicationContext(), ContactMassegeDetailsView.class);
-            intent.putExtra("C_ID", C_ID);
+            intent.putExtra("CID", CID);
             intent.putExtra("ContactMobileNumber", phone);
             intent.putExtra("ContactName", ContactName);
             intent.putExtra("RecyclerviewPosition", position);
-            //we are saving opened_contactChatView as C_ID
+            //we are saving opened_contactChatView as CID
             Log.d("log-opened_contactChatView", "onClick: opened_contactChatView is : " + Contact_page_opened_id);
             context.startActivity(intent);
             setNewMassegeArriveValueToEmpty(position);
@@ -187,18 +196,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                     int position = ViewHolder.this.getAdapterPosition();
                     ContactWithMassengerEntity contact = contactList.get(position);
                     long phone = contact.getMobileNumber();
-                    long CID = contact.getC_ID();
+                    String CID = contact.getCID();
                     if (item.getItemId() == R.id.LPOCPMDelete) {
                         Toast.makeText(context, "LPOCPMDelete", Toast.LENGTH_SHORT).show();
 
-                        MainActivity.contactArrayList.removeIf(e -> e.getC_ID() == CID);
-                        MainActivity.filterdContactArrayList.removeIf(e -> e.getC_ID() == CID);
+                        MainActivity.contactArrayList.removeIf(e -> e.getCID() == CID);
+                        MainActivity.filteredContactArrayList.removeIf(e -> e.getCID() == CID);
                         Thread t = new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 MassegeDao massegeDao = db.massegeDao();;
-                               int r1= massegeDao.removeChatsFromMassegeTable(CID);
-                                int r2 = massegeDao.removeSelfContactFromContactTable(CID);
+                               int r1= massegeDao.removeChatsFromMassegeTable(CID, user_login_id);
+                                int r2 = massegeDao.removeSelfContactFromContactTable(CID, user_login_id);
                             }
                         });
                         t.start();
@@ -216,7 +225,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                             @Override
                             public void run() {
                                 MassegeDao massegeDao = db.massegeDao();;
-                                int r1= massegeDao.removeChatsFromMassegeTable(CID);
+                                int r1= massegeDao.removeChatsFromMassegeTable(CID, user_login_id);
                             }
                         });
                         t.start();

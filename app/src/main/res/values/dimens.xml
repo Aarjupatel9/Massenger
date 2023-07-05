@@ -4,7 +4,7 @@
     <dimen name="activity_vertical_margin">16sp</dimen>
     <dimen name="fab_margin">16sp</dimen>
     <dimen name="appbar_padding">16sp</dimen>
-    <dimen name="user_profile_page_main_marginStart">40dp</dimen>
+    <dimen name="user_profile_page_main_marginStart">30dp</dimen>
 
     <dimen name="MainMassege_size">15sp</dimen>
 

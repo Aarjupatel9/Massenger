@@ -7,17 +7,18 @@ import com.example.mank.LocalDatabaseFiles.MainDatabaseClass;
 import com.example.mank.LocalDatabaseFiles.entities.MassegeEntity;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ContactMassegeHolder {
     List<MassegeEntity> data;
 
-    public ContactMassegeHolder(MainDatabaseClass db, long C_ID) {
+    public ContactMassegeHolder(MainDatabaseClass db, String CID) {
 
         MassegeDao massegeDao = db.massegeDao();
-        if (C_ID == user_login_id) {
-            data = massegeDao.getSelfChat(C_ID);
+        if (Objects.equals(CID, user_login_id)) {
+            data = massegeDao.getSelfChat(CID, user_login_id);
         } else {
-            data = massegeDao.getChat(C_ID);
+            data = massegeDao.getChat(CID , user_login_id);
         }
     }
 

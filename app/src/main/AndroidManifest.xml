@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
 
     <application
         android:name="com.example.mank.MainActivityClassForContext"
@@ -32,28 +34,21 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".HomePageWithContactActivity"
-            android:exported="false">
-            <!--            <intent-filter>-->
-            <!--                <action android:name="android.intent.action.MAIN" />-->
-            <!--                <category android:name="android.intent.category.LAUNCHER" />-->
-            <!--            </intent-filter>-->
-        </activity>
-        <activity
-            android:name=".AppStartingViewPage"
-            android:exported="false" />
-        <activity
             android:name=".AllContactOfUserInDeviceView"
             android:exported="false" />
         <activity
-            android:name=".profile.ProfileUploadActivity"
+            android:name=".profile.AllSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".profile.UserProfileActivity"
             android:exported="false" />
         <activity
             android:name=".ContactMassegeDetailsView"
@@ -75,12 +70,19 @@
         <activity
             android:name=".profile.BgImageSetForContactPage"
             android:exported="false" />
+        <activity
+            android:name=".profile.AccountSettingPage"
+            android:exported="false" />
+        <activity
+            android:name=".profile.PrivacySettingPage"
+            android:exported="false" />
 
         <receiver
             android:name=".networkPackage.NetworkChangeReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="xxandroid.net.conn.CONNECTIVITY_CHANGE"
+                <action
+                    android:name="xxandroid.net.conn.CONNECTIVITY_CHANGE"
                     tools:ignore="BatteryLife" />
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
             </intent-filter>
@@ -95,6 +97,20 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/try_provider_paths" />
         </provider>
+
+        <service
+            android:name=".services.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".services.MyForegroundService"
+            android:enabled="true"
+            android:exported="false" />
+
 
     </application>
 

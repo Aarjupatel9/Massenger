@@ -5,23 +5,25 @@ import com.example.mank.LocalDatabaseFiles.MainDatabaseClass;
 import com.example.mank.LocalDatabaseFiles.entities.SetupFirstTimeEntity;
 
 import java.util.Calendar;
+import java.util.Date;
 
 public class AppDetailsHolder {
-    SetupFirstTimeEntity data;
+    SetupFirstTimeEntity setupFirstTimeEntity;
     MassegeDao massegeDao;
 
     public AppDetailsHolder(MainDatabaseClass db) {
         massegeDao = db.massegeDao();
-        data = massegeDao.getAppOpenDetailsForFirstTime();
+        setupFirstTimeEntity = massegeDao.getLastAppOpenEntity();
     }
 
     public void addThisDetails() {
-        SetupFirstTimeEntity new_details = new SetupFirstTimeEntity(Calendar.getInstance().getTime());
+        Date date = new Date();
+        SetupFirstTimeEntity new_details = new SetupFirstTimeEntity(date.getTime());
         massegeDao.addAppOpenDetails(new_details);
     }
 
     public SetupFirstTimeEntity getData() {
-        return data;
+        return setupFirstTimeEntity;
     }
 
 }

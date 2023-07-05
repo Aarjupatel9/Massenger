@@ -1,6 +1,9 @@
 package com.example.mank.RecyclerViewClassesFolder;
 
+import static com.example.mank.AllContactOfUserInDeviceView.massegeDao;
 import static com.example.mank.MainActivity.Contact_page_opened_id;
+import static com.example.mank.MainActivity.contactListAdapter;
+import static com.example.mank.MainActivity.user_login_id;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -17,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mank.ContactMassegeDetailsView;
+import com.example.mank.LocalDatabaseFiles.entities.AllContactOfUserEntity;
 import com.example.mank.LocalDatabaseFiles.entities.ContactWithMassengerEntity;
 import com.example.mank.R;
 import com.example.mank.RecyclerViewClassesFolder.SearchModel.CourseModel;
@@ -27,7 +31,7 @@ import java.util.List;
 public class ContactSyncMainRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public Context context;
-    public static List<ContactWithMassengerEntity> contactList;
+    public static List<AllContactOfUserEntity> contactList;
 
     private ArrayList<CourseModel> courseModelArrayList;
 
@@ -40,7 +44,7 @@ public class ContactSyncMainRecyclerViewAdapter extends RecyclerView.Adapter<Rec
         notifyDataSetChanged();
     }
 
-    public ContactSyncMainRecyclerViewAdapter(Context context, List<ContactWithMassengerEntity> contactList) {
+    public ContactSyncMainRecyclerViewAdapter(Context context, List<AllContactOfUserEntity> contactList) {
         this.contactList = contactList;
         this.context = context;
     }
@@ -67,13 +71,13 @@ public class ContactSyncMainRecyclerViewAdapter extends RecyclerView.Adapter<Rec
 
     @Override
     public int getItemViewType(int position) {
-        ContactWithMassengerEntity contact = contactList.get(position);
-//        Log.d("log-ContactSyncMainRecyclerViewAdapter", "contact.getC_ID()  : " + contact.getC_ID() + " DisplayName: "+contact.getDisplay_name());
-        if (contact.getC_ID() == -5) {
+        AllContactOfUserEntity contact = contactList.get(position);
+//        Log.d("log-ContactSyncMainRecyclerViewAdapter", "contact.getCID()  : " + contact.getCID() + " DisplayName: "+contact.getDisplay_name());
+        if (contact.getCID().equals("-5")) {
             return 3;
-        } else if (contact.getC_ID() == -101) {
+        } else if (contact.getCID().equals("-101")) {
             return 2;
-        } else if (contact.getC_ID() == -100) {//for contact on massenger label
+        } else if (contact.getCID().equals("-100")) {//for contact on massenger label
             return 1;
         }
         return 0;
@@ -86,18 +90,18 @@ public class ContactSyncMainRecyclerViewAdapter extends RecyclerView.Adapter<Rec
         switch (holder.getItemViewType()) {
             case 0:
                 ViewHolder viewHolder = (ViewHolder) holder;
-                ContactWithMassengerEntity contact = contactList.get(position);
-                viewHolder.Display_Name.setText(contact.getDisplay_name());
+                AllContactOfUserEntity contact = contactList.get(position);
+                viewHolder.Display_Name.setText(contact.getDisplayName());
                 viewHolder.LastMassegeOfContact.setText(String.valueOf(contact.getMobileNumber()));
                 viewHolder.DPImageButton.setImageDrawable(context.getResources().getDrawable(R.drawable.b_user_image));
-                if (contact.getC_ID() == -1) {
-                    viewHolder.InviteText.setVisibility(View.VISIBLE);
-                }
+//                if (contact.getCID() == -1) {
+//                    viewHolder.InviteText.setVisibility(View.VISIBLE);
+//                }
                 break;
             case 3:
                 ViewHolder viewHolder3 = (ViewHolder) holder;
-                ContactWithMassengerEntity contact1 = contactList.get(position);
-                viewHolder3.Display_Name.setText(contact1.getDisplay_name());
+                AllContactOfUserEntity contact1 = contactList.get(position);
+                viewHolder3.Display_Name.setText(contact1.getDisplayName());
                 viewHolder3.LastMassegeOfContact.setText(String.valueOf(contact1.getMobileNumber()));
                 viewHolder3.DPImageButton.setImageDrawable(context.getResources().getDrawable(R.drawable.null_user_image));
                 viewHolder3.InviteText.setVisibility(View.VISIBLE);
@@ -148,28 +152,45 @@ public class ContactSyncMainRecyclerViewAdapter extends RecyclerView.Adapter<Rec
         public void onClick(View view) {
             Log.d("log-clicked", "you clicked Contact recyclerView_main");
             int position = this.getAdapterPosition();
-            ContactWithMassengerEntity contact = contactList.get(position);
-            long CID = contact.getC_ID();
-            if (CID < 0) {
+            AllContactOfUserEntity contact = contactList.get(position);
+            String CID = contact.getCID();
+            if (CID.equals("-1")) {
                 Toast.makeText(context, "Invite your friend on Massenger", Toast.LENGTH_LONG).show();
             } else {
 
                 long phone = contact.getMobileNumber();
                 Contact_page_opened_id = CID;
-                String ContactName = contact.getDisplay_name();
+                String ContactName = contact.getDisplayName();
 
-                Toast.makeText(context, "The position is " + (position) +
-                        " Name: " + ContactName + ", Phone:" + phone + ", CID:" + CID, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context, "The position is " + (position) +
+//                        " Name: " + ContactName + ", Phone:" + phone + ", CID:" + CID, Toast.LENGTH_SHORT).show();
 
+                // save contact to contactDetails table
+                Thread tx = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ContactWithMassengerEntity y = massegeDao.getContactWith_CID(CID, user_login_id);
+                        if(y == null){
+                            //if first time then store it to contactDetails table
+                            long x = massegeDao.getHighestPriorityRank(user_login_id);
+                            ContactWithMassengerEntity new_entity = new ContactWithMassengerEntity(phone, ContactName, CID, x + 1);
+                            contactListAdapter.AddContact(new_entity); // adapter add into database as well as reflect into UI
+//                            massegeDao.SaveContactDetailsInDatabase(new_entity);
+                        }
+
+                    }
+                });
+                tx.start();
+
+                // staring intent
                 Intent intent = new Intent(context.getApplicationContext(), ContactMassegeDetailsView.class);
-                intent.putExtra("C_ID", CID);
+                intent.putExtra("CID", CID);
                 intent.putExtra("ContactMobileNumber", phone);
                 intent.putExtra("ContactName", ContactName);
                 intent.putExtra("RecyclerviewPosition", position);
-
-                //we are saving opened_contactChatView as C_ID
-                Log.d("log-opened_contactChatView", "onClick: opened_contactChatView is : " + Contact_page_opened_id);
                 context.startActivity(intent);
+                //we are saving opened_contactChatView as CID
+//                Log.d("log-opened_contactChatView", "onClick: opened_contactChatView is : " + Contact_page_opened_id);
 //            setOpened_contactChatViewToEmpty(position);
             }
         }

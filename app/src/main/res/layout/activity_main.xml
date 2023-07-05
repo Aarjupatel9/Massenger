@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomePageWithContactActivity">
+    tools:context=".MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/HPConstraintLayout2"
@@ -117,7 +117,7 @@
         android:layout_marginBottom="50dp"
         android:onClick="getListOfAllUserContact"
         android:src="@drawable/ic_baseline_contact_list_24"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="@color/transparent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:visibility="visible"

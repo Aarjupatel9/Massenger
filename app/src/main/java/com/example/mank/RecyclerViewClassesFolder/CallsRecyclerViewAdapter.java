@@ -37,7 +37,6 @@ public class CallsRecyclerViewAdapter extends RecyclerView.Adapter<CallsRecycler
     @Override
     public void onBindViewHolder(@NonNull CallsRecyclerViewAdapter.ViewHolder holder, int position) {
         long id = ContactStatusList.get(position);
-
         holder.SPContactName.setText("calling is coming soon...");
         holder.SPStatusPostingTime.setText("");
 

@@ -19,9 +19,9 @@ public class StatusRecyclerViewAdapter extends RecyclerView.Adapter<StatusRecycl
 
 
     public Context context;
-    public List<Long> ContactStatusList;
+    public List<String> ContactStatusList;
 
-    public StatusRecyclerViewAdapter(Context context, List<Long> ContactStatusList) {
+    public StatusRecyclerViewAdapter(Context context, List<String> ContactStatusList) {
         this.ContactStatusList = ContactStatusList;
         this.context = context;
     }
@@ -36,11 +36,9 @@ public class StatusRecyclerViewAdapter extends RecyclerView.Adapter<StatusRecycl
     @SuppressLint("UseCompatLoadingForDrawables")
     @Override
     public void onBindViewHolder(@NonNull StatusRecyclerViewAdapter.ViewHolder holder, int position) {
-        long id = ContactStatusList.get(position);
-
+        String id = ContactStatusList.get(position);
         holder.SPContactName.setText("status is coming soon...");
         holder.SPStatusPostingTime.setText("");
-
     }
 
     @Override

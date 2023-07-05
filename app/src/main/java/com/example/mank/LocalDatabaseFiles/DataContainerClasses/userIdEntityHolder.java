@@ -5,7 +5,7 @@ import com.example.mank.LocalDatabaseFiles.MainDatabaseClass;
 
 public class userIdEntityHolder {
 //    userIdEntityForApp UserLoginId;
-    long UserLoginId;
+    String UserLoginId;
     long UserMobileNumber;
 
     public userIdEntityHolder( MainDatabaseClass db){
@@ -20,7 +20,7 @@ public class userIdEntityHolder {
 //    public userIdEntityForApp getData(){
 //        return UserLoginId;
 //    }
-    public long getUserLoginId(){
+    public String getUserLoginId(){
         return UserLoginId;
     }
     public long getUserMobileNumber(){

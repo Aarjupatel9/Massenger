@@ -28,7 +28,7 @@ public class StatusPageViewModel extends ViewModel {
             Log.d("log-StatusPageViewModel", "Transformations.map || mIndex:" + mIndex.getValue());
             Log.d("log-StatusPageViewModel", "Transformations.map || input:" + input);
 
-            ArrayList<Long> contactStatusList = new ArrayList<>();
+            ArrayList<String> contactStatusList = new ArrayList<>();
             contactStatusList.add(user_login_id);
             statusRecyclerViewAdapter = new StatusRecyclerViewAdapter(MainActivityStaticContext, contactStatusList);
             return  statusRecyclerViewAdapter;

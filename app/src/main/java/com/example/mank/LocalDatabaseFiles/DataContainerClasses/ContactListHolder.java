@@ -2,6 +2,7 @@ package com.example.mank.LocalDatabaseFiles.DataContainerClasses;
 
 import static com.example.mank.MainActivity.contactArrayList;
 import static com.example.mank.MainActivity.recyclerViewAdapter;
+import static com.example.mank.MainActivity.user_login_id;
 import static com.google.android.material.internal.ContextUtils.getActivity;
 
 import android.annotation.SuppressLint;
@@ -18,23 +19,26 @@ import java.util.Objects;
 public class ContactListHolder {
 
     List<ContactWithMassengerEntity> data;
-    public  ArrayList<ContactWithMassengerEntity> MainContactList;
+    private  ArrayList<ContactWithMassengerEntity> MainContactList;
     private boolean pass = false;
     public ContactListHolder(MainDatabaseClass db) {
 
         MassegeDao massegeDao = db.massegeDao();
-        data = massegeDao.getContactDetailsFromDatabase();
+        data = massegeDao.getContactDetailsFromDatabase(user_login_id);
         MainContactList = new ArrayList<>();
         MainContactList.addAll(data);
         pass=true;
     }
 
+    public  ArrayList<ContactWithMassengerEntity> getMainContactList(){
+        return  MainContactList;
+    }
     public List<ContactWithMassengerEntity> getData() {
         return data;
     }
 
     @SuppressLint({"NotifyDataSetChanged", "RestrictedApi"})
-    public void updatePositionOfContact(long C_ID, Context context){
+    public void updatePositionOfContact(String C_ID, Context context){
         synchronized (this) {
             while (!pass){
                 try {
@@ -45,7 +49,7 @@ public class ContactListHolder {
             }
             pass = false;
             for (int i = 0; i < contactArrayList.size(); i++) {
-                if (contactArrayList.get(i).getC_ID() == C_ID) {
+                if (contactArrayList.get(i).getCID().equals(C_ID)) {
                     ContactWithMassengerEntity x = contactArrayList.remove(i);
                     contactArrayList.add(0, x);
                     Objects.requireNonNull(getActivity(context)).runOnUiThread(new Runnable() {

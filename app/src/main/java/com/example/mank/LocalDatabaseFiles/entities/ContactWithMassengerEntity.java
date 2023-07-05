@@ -1,5 +1,7 @@
 package com.example.mank.LocalDatabaseFiles.entities;
 
+import static com.example.mank.MainActivity.user_login_id;
+
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -7,20 +9,28 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "contactDetails")
 public class ContactWithMassengerEntity {
-
-    @PrimaryKey
-    @ColumnInfo(name = "C_ID")
-    private long C_ID;
+    @NonNull
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name="index")
+    private long index;
+    @ColumnInfo(name = "CID")
+    private String CID;
+    @ColumnInfo(name = "AppUserId")
+    private String AppUserId;
     @ColumnInfo(name = "MobileNumber")
     private Long MobileNumber;
-    @ColumnInfo(name = "DisplayName" )
-    private String Display_name;
-
+    @ColumnInfo(name = "DisplayName")
+    private String DisplayName;
+    @ColumnInfo(name = "About")
+    private String About = "jai shree krushn";
+    @ColumnInfo(name = "UserImage")
+    private byte[] UserImage = null;
+    @ColumnInfo(name = "ProfileImageVersion")
+    private long ProfileImageVersion=0;
     @ColumnInfo(name = "PriorityRank")
     private long PriorityRank = 0;
-  @ColumnInfo(name = "LocallySaved")
+    @ColumnInfo(name = "LocallySaved")
     private int LocallySaved = 1;
-
     @ColumnInfo(name = "NewMassegeArriveValue")
     private int NewMassegeArriveValue = 0;
     private boolean TouchEffectPass = false;
@@ -28,22 +38,60 @@ public class ContactWithMassengerEntity {
     public ContactWithMassengerEntity() {
     }
 
-    public ContactWithMassengerEntity(long MobileNumber, String Display_name, long C_ID) {
-        this.MobileNumber = MobileNumber;
-        this.Display_name = Display_name;
-        this.C_ID = C_ID;
+    public String getAbout() {
+        return About;
     }
-    public ContactWithMassengerEntity(long MobileNumber, String Display_name, long C_ID,long priorityRank) {
+
+    public void setAbout(String about) {
+        About = about;
+    }
+
+    public void setProfileImageVersion(long v) {
+        this.ProfileImageVersion = v;
+    }
+    public long getProfileImageVersion() {
+        return this.ProfileImageVersion;
+    }
+    public void setAppUserId(String appUserId) {
+        AppUserId = appUserId;
+    }
+
+    public String getAppUserId() {
+        return AppUserId;
+    }
+
+    public ContactWithMassengerEntity(long MobileNumber, String Display_name, String CID) {
         this.MobileNumber = MobileNumber;
-        this.Display_name = Display_name;
-        this.C_ID = C_ID;
+        this.DisplayName = Display_name;
+        this.CID = CID;
+        this.AppUserId = user_login_id;
+
+    }
+
+    public ContactWithMassengerEntity(long MobileNumber, String DisplayName, String CID, long priorityRank) {
+        this.MobileNumber = MobileNumber;
+        this.DisplayName = DisplayName;
+        this.CID = CID;
         this.PriorityRank = priorityRank;
+        this.AppUserId = user_login_id;
+
     }
-    public ContactWithMassengerEntity(long MobileNumber, String Display_name, long C_ID,int LocallySaved) {
+
+    public ContactWithMassengerEntity(long MobileNumber, String DisplayName, String CID, int LocallySaved) {
         this.MobileNumber = MobileNumber;
-        this.Display_name = Display_name;
-        this.C_ID = C_ID;
+        this.DisplayName = DisplayName;
+        this.CID = CID;
         this.LocallySaved = LocallySaved;
+        this.AppUserId = user_login_id;
+
+    }
+
+    public long getIndex() {
+        return index;
+    }
+
+    public void setIndex(long index) {
+        this.index = index;
     }
 
 
@@ -61,13 +109,13 @@ public class ContactWithMassengerEntity {
     }
 
     @NonNull
-    public void setC_ID(int C_ID) {
-        this.C_ID = C_ID;
+    public void setCID(String CID) {
+        this.CID = CID;
     }
 
     @NonNull
-    public void setDisplay_name(String Display_name) {
-        this.Display_name = Display_name;
+    public void setDisplayName(String Display_name) {
+        this.DisplayName = Display_name;
     }
 
     @NonNull
@@ -76,25 +124,29 @@ public class ContactWithMassengerEntity {
     }
 
     @NonNull
-    public long getC_ID() {
-        return this.C_ID;
+    public String getCID() {
+        return this.CID;
     }
 
-    public int getLocallySaved(){
+    public int getLocallySaved() {
         return this.LocallySaved;
-    }public void setLocallySaved(int LocallySaved){
+    }
+
+    public void setLocallySaved(int LocallySaved) {
         this.LocallySaved = LocallySaved;
     }
+
     @NonNull
-    public String getDisplay_name() {
-        return this.Display_name;
+    public String getDisplayName() {
+        return this.DisplayName;
     }
 
-    public  void setNewMassegeArriveValue(int NewMassegeArriveValue){
+    public void setNewMassegeArriveValue(int NewMassegeArriveValue) {
         this.NewMassegeArriveValue = NewMassegeArriveValue;
     }
+
     public int getNewMassegeArriveValue() {
-        return  NewMassegeArriveValue;
+        return NewMassegeArriveValue;
     }
 
     public long getPriorityRank() {
@@ -103,5 +155,13 @@ public class ContactWithMassengerEntity {
 
     public void setPriorityRank(int priorityRank) {
         PriorityRank = priorityRank;
+    }
+
+    public byte[] getUserImage() {
+        return UserImage;
+    }
+
+    public void setUserImage(byte[] userImage) {
+        UserImage = userImage;
     }
 }

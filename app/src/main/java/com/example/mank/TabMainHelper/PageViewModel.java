@@ -3,7 +3,8 @@ package com.example.mank.TabMainHelper;
 import static com.example.mank.MainActivity.MainActivityStaticContext;
 import static com.example.mank.MainActivity.MainContactListHolder;
 import static com.example.mank.MainActivity.contactArrayList;
-import static com.example.mank.MainActivity.filterdContactArrayList;
+import static com.example.mank.MainActivity.contactListAdapter;
+import static com.example.mank.MainActivity.filteredContactArrayList;
 import static com.example.mank.MainActivity.db;
 import static com.example.mank.MainActivity.recyclerViewAdapter;
 import static com.example.mank.MainActivity.statusForThread;
@@ -36,8 +37,8 @@ public class PageViewModel extends ViewModel {
             if (contactArrayList == null) {
                 contactArrayList = new ArrayList<>();
                 MainContactListHolder = new ContactListHolder(db);
-                contactArrayList = MainContactListHolder.MainContactList;
-                filterdContactArrayList = (ArrayList<ContactWithMassengerEntity>) contactArrayList.clone();
+                contactArrayList = contactListAdapter.getContactList();
+                filteredContactArrayList = (ArrayList<ContactWithMassengerEntity>) contactArrayList.clone();
 
                 synchronized (statusForThread) {
                     statusForThread.setValue(1);
@@ -45,6 +46,11 @@ public class PageViewModel extends ViewModel {
                     statusForThread.notifyAll();
                 }
                 recyclerViewAdapter = new RecyclerViewAdapter(MainActivityStaticContext, contactArrayList);
+            }else{
+                MainContactListHolder = new ContactListHolder(db);
+                contactArrayList = contactListAdapter.getContactList();
+                recyclerViewAdapter = new RecyclerViewAdapter(MainActivityStaticContext, contactArrayList);
+                filteredContactArrayList = (ArrayList<ContactWithMassengerEntity>) contactArrayList.clone();
             }
             return recyclerViewAdapter;
         }

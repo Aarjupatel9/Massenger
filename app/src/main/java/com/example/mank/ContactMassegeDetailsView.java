@@ -11,6 +11,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -35,21 +38,29 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
 
+import com.example.mank.DatabaseAdapter.MassegeListAdapter;
 import com.example.mank.FunctionalityClasses.ContactDetailsFromMassegeViewPage;
 import com.example.mank.LocalDatabaseFiles.DAoFiles.MassegeDao;
 import com.example.mank.LocalDatabaseFiles.DataContainerClasses.ContactMassegeHolder;
 import com.example.mank.LocalDatabaseFiles.MainDatabaseClass;
 import com.example.mank.LocalDatabaseFiles.entities.MassegeEntity;
 import com.example.mank.MediaPlayerClasses.DotSound;
+import com.example.mank.MediaPlayerClasses.SoundThread;
 import com.example.mank.RecyclerViewClassesFolder.ContactMassegeRecyclerViewAdapter;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -57,17 +68,19 @@ import io.socket.emitter.Emitter;
 
 public class ContactMassegeDetailsView extends Activity {
 
-    public static RecyclerView massege_recyclerView;
+    public static RecyclerView ContactMassegeRecyclerView;
     public static ContactMassegeRecyclerViewAdapter massegeRecyclerViewAdapter;
     public static ArrayList<MassegeEntity> massegeArrayList;
+    public static MassegeListAdapter massegeListAdapter;
     private int lastChatId;
     static int counter = 0;
     private ConstraintLayout CDMVNewUserConstraintLayout;
+    private ConstraintLayout CMDVConstraintLayoutMain;
     private EditText massege_field;
     private ImageButton send_massege_button;
     private ImageButton OtherActivityButton;
     private TextView online_status_text_area;
-    private long C_ID;
+    private String CID;
     private long ContactMobileNumber;
     private String ContactName;
     private TextView Contact_name_of_user;
@@ -134,26 +147,29 @@ public class ContactMassegeDetailsView extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
-        C_ID = intent.getLongExtra("C_ID", -1);
+        CID = intent.getStringExtra("CID");
+        if (CID == null) {
+            CID = "";
+        }
         ContactMobileNumber = intent.getLongExtra("ContactMobileNumber", -2);
         ContactName = intent.getStringExtra("ContactName");
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
 
-        Log.d("log-ContactMassegeDetailsView-onCreate", "contact_id:" + C_ID + ", user_login_id:" + user_login_id);
+        massegeListAdapter = new MassegeListAdapter(db);
+
+        Log.d("log-ContactMassegeDetailsView-onCreate", "contact_id:" + CID + ", user_login_id:" + user_login_id);
         setContentView(R.layout.activity_contact_massege_details_view);
 
         online_status_checker_timer = new Timer();
-        //your method
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                //your method
                 socket.emit("CheckContactOnlineStatus", user_login_id, Contact_page_opened_id);
             }
         };
-        online_status_checker_timer.scheduleAtFixedRate(timerTask, 1, 1000);
 
+        online_status_checker_timer.scheduleAtFixedRate(timerTask, 1, 1000);
         online_status_text_area = findViewById(R.id.Contact_last_come_in_app_status);
         Contact_name_of_user = findViewById(R.id.Contact_name_of_user);
         CDMVNewUserConstraintLayout = findViewById(R.id.CDMVNewUserConstraintLayout);
@@ -168,16 +184,16 @@ public class ContactMassegeDetailsView extends Activity {
         OtherActivityButton = (ImageButton) findViewById(R.id.OtherActivityButton);
         send_massege_button = (ImageButton) findViewById(R.id.send_massege_button);
         send_massege_button.setClickable(false);
-        massege_recyclerView = findViewById(R.id.ContactMassegeRecyclerView);
+        ContactMassegeRecyclerView = findViewById(R.id.ContactMassegeRecyclerView);
+        CMDVConstraintLayoutMain = findViewById(R.id.CMDVConstraintLayoutMain);
 
         setLocationButtonColor(true);
 
         socket.on("CheckContactOnlineStatus_return", onCheckContactOnlineStatus_return);
-
         massegeDao = db.massegeDao();
-        setAllMassege(C_ID);
-        setLastChatId(db);
-        setNewMassegeArriveValue(C_ID);
+        setAllMassege(CID);
+        setLastChatId();
+        setNewMassegeArriveValue(CID);
 
         massege_field.addTextChangedListener(new TextWatcher() {
             @Override
@@ -211,7 +227,7 @@ public class ContactMassegeDetailsView extends Activity {
                     if (keyboardPass) {
                         keyboardPass = false;
                         Log.d("log-addOnGlobalLayoutListener", "keyboard is visible");
-                        massege_recyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
+                        ContactMassegeRecyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
                     }
                 } else {
                     if (!keyboardPass) {
@@ -221,8 +237,51 @@ public class ContactMassegeDetailsView extends Activity {
                 }
             }
         });
-
+        setBackgroundImage();
     }
+
+    public void setBackgroundImage() {
+        Thread ti = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                String imagePath = "/storage/emulated/0/Android/media/com.massenger.mank.main/bg/bgImages/" + user_login_id + ".png";
+                byte[] byteArray = null;
+                try {
+                    File imageFile = new File(imagePath);
+                    FileInputStream fis = new FileInputStream(imageFile);
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        bos.write(buffer, 0, bytesRead);
+                    }
+                    fis.close();
+                    bos.close();
+                    byteArray = bos.toByteArray();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (byteArray != null) {
+                    Bitmap selfImage = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+                    Log.d("log-ContactListAdapter", "setUserImage : after fetch image form file system : " + byteArray.length);
+                    BitmapDrawable drawable = new BitmapDrawable(getResources(), selfImage);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (CMDVConstraintLayoutMain != null) {
+                                CMDVConstraintLayoutMain.setBackground(drawable);
+                            } else {
+                                Log.d("log-ContactMassegeDetailsView", "ContactMassegeRecyclerView is null");
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        ti.start();
+    }
+
 
     public void addNewUserIntoContact(View view) {
 
@@ -237,7 +296,6 @@ public class ContactMassegeDetailsView extends Activity {
 
 
     }
-
 
     public static float dpToPx(Context context, float valueInDp) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
@@ -258,39 +316,35 @@ public class ContactMassegeDetailsView extends Activity {
 
     }
 
-    private void setNewMassegeArriveValue(long cId) {
+    private void setNewMassegeArriveValue(String cId) {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                MassegeDao massegeDao = db.massegeDao();
-                massegeDao.updateNewMassegeArriveValue(cId, 0);
+                massegeDao.updateNewMassegeArriveValue(cId, 0, user_login_id);
             }
         });
         t.start();
     }
 
 
-    private void setLastChatId(MainDatabaseClass db) {
+    private void setLastChatId() {
 
-        MassegeDao massegeDao = db.massegeDao();
-        lastChatId = massegeDao.getLastInsertedMassege() + 1;
+        lastChatId = massegeDao.getLastInsertedMassege(user_login_id) + 1;
         Log.d("log-lastchatid", "setLastChatId: last chat is : " + lastChatId);
     }
 
-    private void setAllMassege(long C_ID) {
-        ContactMassegeHolder massegeHolder = new ContactMassegeHolder(db, C_ID);
-        List<MassegeEntity> massegeList = massegeHolder.getMassegeList();
+    private void setAllMassege(String CID) {
+
         massegeArrayList = new ArrayList<>();
-//        for (MassegeEntity e : massegeList) {
-//            Log.d("log-massege", "massge is : " + e.getMassege());
-//        }
-        massegeArrayList.addAll(massegeList);
-        massege_recyclerView.setHasFixedSize(true);
-        massege_recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        massegeListAdapter.setContext(this);
+        massegeListAdapter.fillMassegeListOfUser(CID);
+
+        ContactMassegeRecyclerView.setHasFixedSize(true);
+        ContactMassegeRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         massegeRecyclerViewAdapter = new ContactMassegeRecyclerViewAdapter(this, massegeArrayList);
-        massege_recyclerView.setAdapter(massegeRecyclerViewAdapter);
+        ContactMassegeRecyclerView.setAdapter(massegeRecyclerViewAdapter);
 //        Log.d("log-list-size", "setAllMassege: list size is :" + massegeRecyclerViewAdapter.getItemCountMyOwn());
-        massege_recyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
+        ContactMassegeRecyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
 
     }
 
@@ -300,7 +354,7 @@ public class ContactMassegeDetailsView extends Activity {
         Log.d("log-getContactDetailsOfUser", "getContactDetailsOfUser: enter here");
         Intent intent = new Intent(this, ContactDetailsFromMassegeViewPage.class);
         intent.putExtra("ContactMobileNumber", ContactMobileNumber);
-        intent.putExtra("C_ID", C_ID);
+        intent.putExtra("CID", CID);
         intent.putExtra("ContactName", ContactName);
         startActivityForResult(intent, LAUNCH_ContactDetailsFromMassegeViewPage_ACTIVITY);
 //        Toast.makeText(this, "you Clicked in User name", Toast.LENGTH_SHORT).show();
@@ -334,16 +388,16 @@ public class ContactMassegeDetailsView extends Activity {
         Log.d("log-SendMassege", "user_login_id is : " + user_login_id);
 
         massege_field.setText("");
-        int massege_status = 5;
+        int massege_status = -1;
         Date current_date = new Date();
 
         Thread setPriorityRankThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                long HighestPriority = massegeDao.getHighestPriorityRank();
-                massegeDao.setPriorityRank(C_ID, HighestPriority + 1);
+                long HighestPriority = massegeDao.getHighestPriorityRank(user_massege);
+                massegeDao.setPriorityRank(CID, HighestPriority + 1, user_massege);
                 if (MainContactListHolder != null) {
-                    MainContactListHolder.updatePositionOfContact(C_ID, ContactMassegeDetailsView.this);
+                    MainContactListHolder.updatePositionOfContact(CID, ContactMassegeDetailsView.this);
                 }
             }
         });
@@ -351,62 +405,43 @@ public class ContactMassegeDetailsView extends Activity {
 
         Log.d("log-try", "Send_massege_of_user: internet connection is : " + check_internet_connectivity());
         if (check_internet_connectivity()) {
-            massege_status = 0;
-            MassegeEntity new_massege = new MassegeEntity(user_login_id, C_ID, user_massege, current_date.getTime(), massege_status);
-            Thread massegeInsertIntoDatabase = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    MassegeDao massegeDao = db.massegeDao();
-                    massegeDao.insertMassegeIntoChat(new_massege);
-                }
-            });
-            massegeInsertIntoDatabase.start();
+            if (Objects.equals(user_login_id, Contact_page_opened_id)) {
+                massege_status = 3;
+            } else {
+                massege_status = 0;
+            }
+            MassegeEntity new_massege = new MassegeEntity(user_login_id, CID, user_massege, current_date.getTime(), massege_status);
+            //now wwe have to store it into database
+            //notify adapter for add massege into recycler view
+            massegeListAdapter.addMassege(new_massege);
+            SoundThread ma = new SoundThread(ContactMassegeDetailsView.this, 0);
+            ma.start();
+
             try {
                 JSONObject massegeOBJ = new JSONObject();
-                massegeOBJ.put("sender_id", user_login_id);
-                massegeOBJ.put("user_massege", user_massege);
-                massegeOBJ.put("C_ID", C_ID);
-                massegeOBJ.put("Chat_id", lastChatId);
-                massegeOBJ.put("time_of_send", current_date.getTime());
-                massegeOBJ.put("massege_status", 0);
-                lastChatId++;
-                socket.emit("send_massege_to_server_from_CMDV", massegeOBJ, user_login_id);
-                Thread massegePopSound = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DotSound ma = new DotSound(ContactMassegeDetailsView.this, 0);
-                        ma.massegePopPlay();
-                    }
-                });
-                try {
-                    massegePopSound.start();
-                } catch (Exception e) {
-                    Log.d("log-exception", "" + e);
-                }
+                massegeOBJ.put("from", user_login_id);
+                massegeOBJ.put("to", CID);
+                massegeOBJ.put("massege", user_massege);
+                massegeOBJ.put("chatId", lastChatId);
+                massegeOBJ.put("time", current_date.getTime());
+                massegeOBJ.put("massegeStatus", massege_status);
+                massegeOBJ.put("massegeStatusL", 1);
+                massegeOBJ.put("ef1", 1);
+                massegeOBJ.put("ef2", 1);
 
-                //now wwe have to store it into database
-                //notify adapter for add massege into recycler view
-                massegeArrayList.add(new_massege);
-                massegeRecyclerViewAdapter.notifyDataSetChanged();
-                massege_recyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
+                lastChatId++;
+
+                JSONArray massegeArray = new JSONArray();
+                massegeArray.put(massegeOBJ);
+
+                socket.emit("send_massege_to_server_from_sender", user_login_id, massegeArray);
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         } else {
-            MassegeEntity new_massege = new MassegeEntity(user_login_id, C_ID, user_massege, current_date.getTime(), massege_status);
-            Thread massegeInsertIntoDatabase = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    massegeDao.insertMassegeIntoChat(new_massege);
-                }
-            });
-            massegeInsertIntoDatabase.start();
-
-            //notify adapter for add massege into recycler view
-            massegeArrayList.add(new_massege);
-            massegeRecyclerViewAdapter.notifyDataSetChanged();
-            massege_recyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
+            MassegeEntity new_massege = new MassegeEntity(user_login_id, CID, user_massege, current_date.getTime(), massege_status);
+            massegeListAdapter.addMassege(new_massege);
         }
     }
 

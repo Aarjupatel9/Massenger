@@ -8,6 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="dullWhite">#919193</color>
+    <color name="offWhite">#CEE0F1</color>
     <color name="light_white_for_send_massege_portion">#C3BDBD</color>
     <color name="MainHeaderColorWhiteVarient">#FC0325FF</color>
     <color name="MainHeaderColor">#3636FF</color>

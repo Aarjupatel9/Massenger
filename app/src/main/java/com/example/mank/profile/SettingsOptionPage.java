@@ -25,7 +25,7 @@ public class SettingsOptionPage extends Activity {
     }
 
     public void ProfilePageMainLabelOnClick(View view) {
-        Intent intent = new Intent(this, ProfileUploadActivity.class);
+        Intent intent = new Intent(this, UserProfileActivity.class);
         startActivity(intent);
     }
 

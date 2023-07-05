@@ -1,8 +1,6 @@
 package com.example.mank;
 
-import static com.example.mank.ContactMassegeDetailsView.massegeArrayList;
-import static com.example.mank.ContactMassegeDetailsView.massegeRecyclerViewAdapter;
-import static com.example.mank.ContactMassegeDetailsView.massege_recyclerView;
+import static com.example.mank.ContactMassegeDetailsView.massegeListAdapter;
 import static com.example.mank.configuration.GlobalVariables.URL_MAIN;
 import static com.example.mank.configuration.permissionMain.hasPermissions;
 import static com.example.mank.configuration.permission_code.CAMERA_PERMISSION_CODE;
@@ -10,21 +8,33 @@ import static com.example.mank.configuration.permission_code.STORAGE_PERMISSION_
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.provider.ContactsContract;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
+
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -33,6 +43,10 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
+import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -42,23 +56,33 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.mank.DatabaseAdapter.ContactListAdapter;
 import com.example.mank.LocalDatabaseFiles.DAoFiles.MassegeDao;
+import com.example.mank.LocalDatabaseFiles.DataContainerClasses.AppDetailsHolder;
 import com.example.mank.LocalDatabaseFiles.DataContainerClasses.ContactListHolder;
 import com.example.mank.LocalDatabaseFiles.DataContainerClasses.MassegeHolderForSpecificPurpose;
+import com.example.mank.LocalDatabaseFiles.DataContainerClasses.contactDetailsHolderForSync;
 import com.example.mank.LocalDatabaseFiles.DataContainerClasses.userIdEntityHolder;
 import com.example.mank.LocalDatabaseFiles.MainDatabaseClass;
+import com.example.mank.LocalDatabaseFiles.entities.AllContactOfUserEntity;
 import com.example.mank.LocalDatabaseFiles.entities.ContactWithMassengerEntity;
 import com.example.mank.LocalDatabaseFiles.entities.MassegeEntity;
+import com.example.mank.LocalDatabaseFiles.entities.SetupFirstTimeEntity;
 import com.example.mank.LoginMenagement.Login;
 import com.example.mank.RecyclerViewClassesFolder.RecyclerViewAdapter;
 import com.example.mank.TabMainHelper.SectionsPagerAdapter;
+import com.example.mank.ThreadPackages.IContactSync;
 import com.example.mank.ThreadPackages.MassegePopSoundThread;
 import com.example.mank.ThreadPackages.StatusForThread;
-import com.example.mank.ThreadPackages.onMassegeArriveThread1;
+import com.example.mank.ThreadPackages.SyncContactDetailsThread;
 import com.example.mank.cipher.MyCipher;
 import com.example.mank.databinding.ActivityMainBinding;
+import com.example.mank.profile.AllSettingsActivity;
 import com.example.mank.profile.BgImageSetForContactPage;
-import com.example.mank.profile.ProfileUploadActivity;
+import com.example.mank.profile.UserProfileActivity;
+import com.example.mank.services.MassegeWorker;
+import com.example.mank.services.MyContentObserver;
+import com.example.mank.services.MyForegroundService;
 import com.example.mank.socket.SocketClass;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -69,10 +93,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -80,29 +111,31 @@ import io.socket.emitter.Emitter;
 
 public class MainActivity extends FragmentActivity {
 
+    public static ContactListAdapter contactListAdapter;
     public static int FinishCode = 0;
-    public static long Contact_page_opened_id = -1;
-    boolean toStopAppMainThread = false;
+    public static String Contact_page_opened_id = "-1";
+    public static StatusForThread statusForThread;
 
-    public int x;
-    //Globle socket variables
+    public static String user_login_id;
+    public static long UserMobileNumber;
+    private boolean toStopAppMainThread = false;
+
+    //global socket variables
     public static SocketClass socketOBJ;
     public static Socket socket;
 
-    public static long user_login_id;
-    public static long UserMobileNumber;
     public static RecyclerView ChatsRecyclerView;
-    private SearchView MAPSearchView;
     public static RecyclerViewAdapter recyclerViewAdapter;
     public static ArrayList<ContactWithMassengerEntity> contactArrayList;
     public static MainDatabaseClass db;
 
     public static ContactListHolder MainContactListHolder;
 
-    private final int PERMISSION_ALL = 1;
+    private final int PERMISSION_ALL = 1, PERMISSION_initContentResolver = 2;
     private final String[] PERMISSIONS = {android.Manifest.permission.INTERNET, android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_NETWORK_STATE, android.Manifest.permission.CHANGE_NETWORK_STATE, android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS,};
     private boolean appOpenFromBackGround = false;
     private boolean EverythingIsOhkInApp = false;
+    private SearchView MAPSearchView;
     private ProgressBar mainProgressBar;
     int LAUNCH_LOGIN_ACTIVITY = 1;
     public Intent LoginIntentData;
@@ -113,9 +146,14 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onStart() {
         super.onStart();
+//        startBackgroundPractice();
+
         startNetworkListener();
+        if (contactListAdapter != null) {
+            contactListAdapter.setContext(this);
+        }
         MainActivityStaticContext = this;
-        Contact_page_opened_id = -1;
+        Contact_page_opened_id = "-1";
         FinishCode = 0;
         Log.d("log-Contact_page_opened_id", "onStart: in MainActivity Contact_page_opened_id  is  : " + Contact_page_opened_id);
         if (!appOpenFromBackGround) {
@@ -125,7 +163,41 @@ public class MainActivity extends FragmentActivity {
             Log.d("log-Contact_page_opened_id", "EverythingIsOhkInApp is :  " + EverythingIsOhkInApp);
         }
     }
-    public static StatusForThread statusForThread;
+
+    private void startBackgroundPractice() {
+
+//        Intent serviceIntent = new Intent(this, MyForegroundService.class);
+//        ContextCompat.startForegroundService(this, serviceIntent);
+        Intent serviceIntent = new Intent(this, MyForegroundService.class);
+        this.startService(serviceIntent);
+
+        // Create a Constraints object to specify conditions for running the task
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresCharging(false)
+                .build();
+
+// Create a OneTimeWorkRequest for your worker class
+        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(MassegeWorker.class)
+                .setConstraints(constraints)
+                .build();
+
+// Enqueue the work request
+        WorkManager.getInstance().enqueue(workRequest);
+    }
+
+    private void initContentResolver() {
+        ContentResolver contentResolver = getContentResolver();
+        Handler handler = new Handler();
+        MyContentObserver contactsObserver = new MyContentObserver(handler);
+        final String[] PERMISSIONS = {android.Manifest.permission.INTERNET, android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_NETWORK_STATE, android.Manifest.permission.CHANGE_NETWORK_STATE, android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS,};
+        if (!hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_initContentResolver);
+        } else {
+            contentResolver.registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, contactsObserver);
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -133,10 +205,12 @@ public class MainActivity extends FragmentActivity {
             statusForThread = new StatusForThread(0);
         }
     }
+
     @Override
     protected void onPause() {
         super.onPause();
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -149,14 +223,18 @@ public class MainActivity extends FragmentActivity {
             toStopAppMainThread = true;  //for stop appMAinThread
         }
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         db = Room.databaseBuilder(getApplicationContext(), MainDatabaseClass.class, "MassengerDatabase").fallbackToDestructiveMigration().allowMainThreadQueries().build();
         massegeDao = db.massegeDao();
 
-        Login login = new Login();
+        verifyLogin(0);
+    }
 
+    public void verifyLogin(int code) {
+        Login login = new Login();
         if (!hasPermissions(this, PERMISSIONS)) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
         }
@@ -167,16 +245,32 @@ public class MainActivity extends FragmentActivity {
             Log.d("log-FinishCode", "onCreate: FinishCode is: " + FinishCode);
             FinishCode = 2;
         } else {
+            initContentResolver();
             startMain();
         }
-
     }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d("log-MainActivity-onNewIntent", "onNewIntent || start");
+
+        verifyLogin(1);
+    }
+
     private void startMain() {
+        db = Room.databaseBuilder(getApplicationContext(), MainDatabaseClass.class, "MassengerDatabase").fallbackToDestructiveMigration().allowMainThreadQueries().build();
+        massegeDao = db.massegeDao();
         userIdEntityHolder userIdEntityHolder = new userIdEntityHolder(db);
         user_login_id = userIdEntityHolder.getUserLoginId();
         UserMobileNumber = userIdEntityHolder.getUserMobileNumber();
+        contactListAdapter = new ContactListAdapter(db);
+        contactListAdapter.setContext(this);
+        contactArrayList = contactListAdapter.getContactList();
+
         saveFireBaseTokenToServer(String.valueOf(user_login_id));
         CreateSocketConnection();
+
         statusForThread = new StatusForThread(0);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -189,6 +283,8 @@ public class MainActivity extends FragmentActivity {
         viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = binding.MainTabs;
         tabs.setupWithViewPager(viewPager);
+
+        syncContactAtAppStart();
 
         EverythingIsOhkInApp = true;
         MAPSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -213,36 +309,85 @@ public class MainActivity extends FragmentActivity {
             }
         });
     }
-    public static ArrayList<ContactWithMassengerEntity> filterdContactArrayList;
+    private void startFirstTimeContactSync() {
+        Intent intent = new Intent(this, AllContactOfUserInDeviceView.class);
+        startActivityForResult(intent, FirstTimeAppSyncAllContactRequestCode);
+
+    }
+    private void startFirstTimeProfileUpdate(){
+        Intent intent = new Intent(this, UserProfileActivity.class);
+        startActivityForResult(intent, FirstTimeProfileUpdateRequestCode);
+
+    }
+    private List<AllContactOfUserEntity> disConnectedContact = new ArrayList<>();
+    private List<AllContactOfUserEntity> connectedContact = new ArrayList<>();
+
+    public void syncContactAtAppStart() {
+        Thread tf = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    AppDetailsHolder appDetailsHolder = new AppDetailsHolder(db);
+                    SetupFirstTimeEntity insertedAtLastEntity = appDetailsHolder.getData();
+                    Log.d("log-MainActivity", "Thread tf || lastOpenTime : " + insertedAtLastEntity.getLastOpenTime());
+                    if (insertedAtLastEntity.getLastOpenTime() < ((new Date().getTime()) - 300000)) {
+                        //app is open after 5 min or more break
+                        // do background contact sync
+                        Log.d("log-MainActivity", "Thread tf || app is open after 1 min or more break");
+
+//                        Toast.makeText(MainActivity.this, "app is opened after 1 min break or more", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    Log.d("log-MainActivity", "Thread tf || exception e: " + e);
+                }
+                SetupFirstTimeEntity new_entity = new SetupFirstTimeEntity();
+                massegeDao.insertLastAppOpenEntity(new_entity);
+            }
+        });
+        tf.start();
+
+        contactDetailsHolderForSync contactDetailsHolder = new contactDetailsHolderForSync(db);
+        connectedContact = contactDetailsHolder.getConnectedContact();
+        disConnectedContact = contactDetailsHolder.getDisConnectedContact();
+        SyncContactDetailsThread scdt = new SyncContactDetailsThread(this, connectedContact, disConnectedContact, new IContactSync() {
+            @Override
+            public void execute(int status, String massege) {
+                Log.d("log-getListOfAllUserContact", "calling getListOfAllUserContact activity");
+//                Toast.makeText(MainActivity.this, massege.toString(), Toast.LENGTH_LONG).show();
+            }
+        });
+        scdt.setFromWhere(0);
+        scdt.start();
+
+    }
+
+    public static ArrayList<ContactWithMassengerEntity> filteredContactArrayList;
+
     @SuppressLint("NotifyDataSetChanged")
     public void contactArrayListFilter(String newText, int flag) {
         if (flag == 0) {
             Log.d("log-MainActivity", "contactArrayListFilter start with flag 0");
             contactArrayList.clear();
-            contactArrayList.addAll(filterdContactArrayList);
+            contactArrayList.addAll(filteredContactArrayList);
             recyclerViewAdapter.notifyDataSetChanged();
             return;
         }
         Log.d("log-MainActivity", "contactArrayListFilter start");
         contactArrayList.clear();
-        contactArrayList.addAll(filterdContactArrayList);
-        for (ContactWithMassengerEntity e : filterdContactArrayList) {
-            if (!e.getDisplay_name().toLowerCase().contains(newText.toLowerCase())) {
+        contactArrayList.addAll(filteredContactArrayList);
+        for (ContactWithMassengerEntity e : filteredContactArrayList) {
+            if (!e.getDisplayName().toLowerCase().contains(newText.toLowerCase())) {
                 contactArrayList.remove(e);
             }
         }
         recyclerViewAdapter.notifyDataSetChanged();
     }
-    private final int FirstTimeAppSyncAllContactRequestCode = 202;
-    private void startMainFirstTime() {
-        userIdEntityHolder userIdEntityHolder = new userIdEntityHolder(db);
-        user_login_id = userIdEntityHolder.getUserLoginId();
-        saveFireBaseTokenToServer(String.valueOf(user_login_id));
-        statusForThread = new StatusForThread(0);
 
-        Intent intent = new Intent(this, AllContactOfUserInDeviceView.class);
-        startActivityForResult(intent, FirstTimeAppSyncAllContactRequestCode);
-    }
+    private final int FirstTimeAppSyncAllContactRequestCode = 203;
+    private final int FirstTimeProfileUpdateRequestCode = 202;
+
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -250,13 +395,16 @@ public class MainActivity extends FragmentActivity {
             if (resultCode == Activity.RESULT_OK) {
                 //1101 is code for this permission checking
                 this.LoginIntentData = data;
-                startMainFirstTime();
+                startMain();
+                startFirstTimeProfileUpdate();
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 Log.d("log-onActivityResult", "Activity RESULT_CANCELED");
             }
+        }else if (requestCode == FirstTimeProfileUpdateRequestCode) {
+            startFirstTimeContactSync();
         } else if (requestCode == FirstTimeAppSyncAllContactRequestCode) {
-            startMain();
+//            startMain();
         }
     } //onActivityResult
 
@@ -267,6 +415,7 @@ public class MainActivity extends FragmentActivity {
         Log.d("log-getListOfAllUserContact", "calling getListOfAllUserContact activity");
         startActivity(intent);
     }
+
     @SuppressLint("NotifyDataSetChanged")
     public static void setNewMassegeArriveValueToEmpty(int position) {
         ContactWithMassengerEntity contactView = contactArrayList.get(position);
@@ -274,7 +423,8 @@ public class MainActivity extends FragmentActivity {
         MainActivity.contactArrayList.set(position, contactView);
         MainActivity.recyclerViewAdapter.notifyDataSetChanged();
     }
-    public static void FetchDataFromServerAndSaveIntoDB(long CID) {
+
+    public static void FetchDataFromServerAndSaveIntoDB(String CID) {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -291,19 +441,19 @@ public class MainActivity extends FragmentActivity {
                         Log.d("log-MainActivity", "onResponse: response length : " + response.length());
                         try {
                             Log.d("log-MainActivity", "onResponse: response[0] : " + response.get(0));
-                            long CID = Long.parseLong(String.valueOf(response.get(0)));
+                            String CID = String.valueOf(response.get(0));
                             long Number = Long.parseLong(String.valueOf(response.get(1)));
                             String Name = (String) response.get(2);
                             String DisplayName = (String) response.get(5);
                             MassegeDao massegeDao = db.massegeDao();
-                            long rank = massegeDao.getHighestPriorityRank();
+                            long rank = massegeDao.getHighestPriorityRank(user_login_id);
                             ContactWithMassengerEntity newContact = new ContactWithMassengerEntity(Number, null, CID, rank + 1);
-                            if (massegeDao.getContactWith_CID(CID) == null) {
+                            if (massegeDao.getContactWith_CID(CID, user_login_id) == null) {
                                 massegeDao.SaveContactDetailsInDatabase(newContact);
-                                massegeDao.setPriorityRank(CID, massegeDao.getHighestPriorityRank());
+                                massegeDao.setPriorityRank(CID, massegeDao.getHighestPriorityRank(user_login_id), user_login_id);
                                 Log.d("log-MainActivity", "onResponse: newContact saved into with rank :" + (rank + 1));
                                 // now we have to add contact into recyclerViewAdapter
-                                contactArrayList.add(0,newContact);
+                                contactArrayList.add(0, newContact);
                                 recyclerViewAdapter.notifyDataSetChanged();
                             }
 
@@ -326,40 +476,132 @@ public class MainActivity extends FragmentActivity {
     }
 
 
-
     private void CreateSocketConnection() {
 
         Log.d("log-MainActivity", "CreateSocketConnection: start");
-        socketOBJ = new SocketClass();
+        socketOBJ = new SocketClass(db);
         socket = socketOBJ.getSocket();
+        if (socket == null) {
+            return;
+        }
+
         socketOBJ.joinRoom(user_login_id);
 
-        socket.on("join_acknowledgement", onJoinAcknowledgement);
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(final Object... args) {
+                Log.d("log-MainActivity", "onJoinAcknowledgement: join success ");
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+//                        Toast.makeText(MainActivity.this, "onJoinAcknowledgement: join success ", Toast.LENGTH_LONG).show();
+                    }
+                });
+                List<MassegeEntity> tmp3, tmp4;
+                //we have to get list of all masseges and send them to server at user came online
+                MassegeHolderForSpecificPurpose mhsp = new MassegeHolderForSpecificPurpose(db, -1);
+                tmp3 = mhsp.getMassegeList();
+                try {
+                    JSONArray massegeData = new JSONArray();
+                    for (int i = 0; i < tmp3.size(); i++) {
+                        MassegeEntity tmp1 = tmp3.get(i);
+                        try {
+                            JSONObject massegeOBJ = new JSONObject();
+                            massegeOBJ.put("from", tmp1.getSenderId());
+                            massegeOBJ.put("massege", tmp1.getMassege());
+                            massegeOBJ.put("to", tmp1.getReceiverId());
+                            massegeOBJ.put("chatId", tmp1.getChatId());
+                            massegeOBJ.put("time", tmp1.getTimeOfSend());
+                            massegeOBJ.put("massegeStatus", 0);
+                            massegeOBJ.put("massegeStatusL", 1);
+                            massegeOBJ.put("ef1", 1);
+                            massegeOBJ.put("ef2", 1);
+                            massegeData.put(massegeOBJ);
+                        } catch (Exception ex) {
+                            Log.d("log-onJoinAcknowledgement", "exception || :" + ex);
+                            Log.d("log-onJoinAcknowledgement", "exception || massegeData : " + massegeData);
+                            Log.d("log-onJoinAcknowledgement", "exception || tmp3.size() : " + massegeData.length());
+                        }
+                    }
+                    if (tmp3.size() > 0) {
 
-        socket.on("massege_sent_to_user", onMassegeSentToUser);
-        socket.on("massege_seen_by_user", onMassegeSeenByUser);
-        socket.on("massege_not_sent_to_user", onMassegeNotSentToUser);
-        socket.on("massege_reach_receipt_from_server", onMassegeReachReceiptFromServer);
+                        socket.emit("send_massege_to_server_from_sender", user_login_id, massegeData);
+                        Log.d("log-MainActivity", "onJoinAcknowledgement || massegeData size :" + massegeData);
 
-        socket.on("massege_sent_when_user_come_to_online_acknowledgement", onMSWUCTOAcknowledgement);
+                    }
+                } catch (Exception e) {
+                    Log.d("log-MainActivity", "onJoinAcknowledgement || exception :" + e);
+                }
+
+
+                MassegeHolderForSpecificPurpose mhsp1 = new MassegeHolderForSpecificPurpose(db, 0);
+                tmp3 = mhsp1.getMassegeList();
+
+                try {
+                    JSONArray massegeData = new JSONArray();
+                    for (int i = 0; i < tmp3.size(); i++) {
+                        MassegeEntity tmp1 = tmp3.get(i);
+                        try {
+                            JSONObject massegeOBJ = new JSONObject();
+                            massegeOBJ.put("from", tmp1.getSenderId());
+                            massegeOBJ.put("massege", tmp1.getMassege());
+                            massegeOBJ.put("to", tmp1.getReceiverId());
+                            massegeOBJ.put("chatId", tmp1.getChatId());
+                            massegeOBJ.put("time", tmp1.getTimeOfSend());
+                            massegeOBJ.put("massegeStatus", tmp1.getMassegeStatus());
+                            massegeOBJ.put("massegeStatusL", 1);
+                            massegeOBJ.put("ef1", 1);
+                            massegeOBJ.put("ef2", 1);
+                            massegeData.put(massegeOBJ);
+                        } catch (Exception ex) {
+                            Log.d("log-onJoinAcknowledgement", "exception || :" + ex);
+                            Log.d("log-onJoinAcknowledgement", "exception || massegeData : " + massegeData);
+                            Log.d("log-onJoinAcknowledgement", "exception || tmp3.size() : " + massegeData.length());
+                        }
+                    }
+                    if (tmp3.size() > 0) {
+                        socket.emit("send_massege_to_server_from_sender", user_login_id, massegeData);
+                        Log.d("log-MainActivity", "onJoinAcknowledgement || massegeData size :" + massegeData);
+                    }
+                } catch (Exception e) {
+                    Log.d("log-MainActivity", "onJoinAcknowledgement || exception :" + e);
+                }
+
+                //updating userProfileImages
+                JSONArray jsonArray = new JSONArray();
+                try {
+                    Log.d("log-MainActivity", "updating userProfileImages : " + contactArrayList.size());
+
+                    for (ContactWithMassengerEntity e : contactArrayList) {
+                        try {
+                            JSONObject tmp = new JSONObject();
+                            tmp.put("_id", e.getCID());
+                            tmp.put("Number", e.getMobileNumber());
+                            tmp.put("ProfileImageVersion", e.getProfileImageVersion());
+                            jsonArray.put(tmp);
+                        } catch (Exception ex) {
+                            Log.d("log-ContactListAdapter-Exception", ex.toString());
+                        }
+                    }
+                    Log.d("log-MainActivity", "profileImage update part : " + jsonArray.toString());
+                    socket.emit("updateProfileImages", user_login_id, jsonArray, 1);
+                } catch (Exception exception) {
+                    Log.d("log-ContactListAdapter-Exception", exception.toString());
+                }
+            }
+        });
+
         socket.on("new_massege_from_server", onMassegeArriveFromServer);
-        socket.on("send_massege_to_server_from_CMDV_acknowledgement", onMassegeReachAtServerFromCMDV);
-
-        socket.on("massege_number_from_server", onMassegeNumberFromServerArrive);
-
+        socket.on("send_massege_to_server_from_sender_acknowledgement", onMassegeReachAtServerFromCMDV);
 
         socket.on("massege_reach_read_receipt", onMassegeReachReadReceipt);
+
+        socket.on("updateSingleContactProfileImage", onUpdateSingleContactProfileImage);
 
         socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
             @Override
             public void call(Object... args) {
                 socket.connect();
-            }
-        });
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                Log.d("log-MainActivity", "Socket.EVENT_CONNECT socket.isActive() : ");
             }
         });
         socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
@@ -371,232 +613,123 @@ public class MainActivity extends FragmentActivity {
     }
 
     //socket event listener define here
-    private final Emitter.Listener onMassegeNumberFromServerArrive = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            int requestCode = Integer.parseInt(String.valueOf(args[0]));
-            Log.d("log-MA", "onMassegeNumberFromServerArrive || start requestCode:"+requestCode);
-            if (requestCode == 1) {
-                JSONArray tmp = (JSONArray) args[2];
-                try {
-                    JSONObject data = (JSONObject) tmp.get(0);
-                    long sender_id = Long.parseLong(String.valueOf(data.get("sender_id")));
-                    long receiver_id = Long.parseLong(String.valueOf(data.get("receiver_id")));
-                    long chat_id = Long.parseLong(String.valueOf(data.get("chat_id")));
-                    long massege_number = Long.parseLong(String.valueOf(data.get("massege_number")));
-                    int rowAffected = massegeDao.updateMassegeNumber(chat_id, massege_number);
-                    Log.d("log-MA", "onMassegeNumberFromServerArrive || massege:" + massege_number + " rowAffected:" + rowAffected);
-                } catch (Exception e) {
-                    Log.d("log-MA", "Exception || e:" + e);
-                }
-            } else if (requestCode == 2) {
-                JSONArray tmp = (JSONArray) args[2];
-                try {
-                    for (int i = 0; i < tmp.length(); i++) {
-                        JSONObject data = (JSONObject) tmp.get(i);
-                        long sender_id = Long.parseLong(String.valueOf(data.get("sender_id")));
-                        long receiver_id = Long.parseLong(String.valueOf(data.get("receiver_id")));
-                        long chat_id = Long.parseLong(String.valueOf(data.get("chat_id")));
-                        long massege_number = Long.parseLong(String.valueOf(data.get("massege_number")));
-                        int rowAffected = massegeDao.updateMassegeNumber(chat_id, massege_number);
 
-                        Log.d("log-MA", "onMassegeNumberFromServerArrive || massege:" + massege_number + " rowAffected:" + rowAffected);
+    //completed
+    private final Emitter.Listener onUpdateSingleContactProfileImage = new Emitter.Listener() {
+        @SuppressLint("NotifyDataSetChanged")
+        @Override
+        public void call(final Object... args) {
+            Log.d("log-onUpdateSingleContactProfileImage", "onUpdateSingleContactProfileImage || start ");
+            String userId = String.valueOf(args[0]);
+            String id = String.valueOf(args[1]);
+            long ProfileImageVersion = Long.parseLong(String.valueOf(args[3]));
+            String profileImageBase64 = (String) args[2];
+            try {
+                byte[] profileImageByteArray = Base64.decode(profileImageBase64, Base64.DEFAULT);
+
+                if (profileImageByteArray.length > 0) {
+                    synchronized (this) {
+                        Bitmap bitmapImage = BitmapFactory.decodeByteArray(profileImageByteArray, 0, profileImageByteArray.length);
+                        Log.d("log-saveImageToInternalStorage", "Saved image of size : " + profileImageByteArray.length + " and resolution : " + bitmapImage.getWidth() + "*" + bitmapImage.getHeight());
+
+                        contactListAdapter.practiceMethod(id, profileImageByteArray);// to update contactList
+
+                        if(saveContactProfileImageToStorage(id, profileImageByteArray)){
+                           massegeDao.updateProfileImageVersion(id, ProfileImageVersion, user_login_id);
+                        }
                     }
-                } catch (Exception e) {
-                    Log.d("log-MA", "Exception || e:" + e);
                 }
+                Log.d("log-onUpdateSingleContactProfileImage", "ProfileImageVersion : " + ProfileImageVersion + " and for cid : " + id + " bytearray : " + Arrays.toString(profileImageByteArray));
+            } catch (Exception ex) {
+                Log.d("log-onUpdateSingleContactProfileImage-Exception", ex.toString());
             }
+
         }
     };
+
+    public static boolean saveContactProfileImageToStorage(String CID, byte[] profileImageByteArray) {
+
+//        Bitmap bitmapImage = BitmapFactory.decodeByteArray(profileImageByteArray, 0, profileImageByteArray.length);
+
+        Bitmap bitmapImage = BitmapFactory.decodeByteArray(profileImageByteArray, 0, profileImageByteArray.length);
+
+
+        File directory = new File(Environment.getExternalStorageDirectory(), "Android/media/com.massenger.mank.main/Pictures/Profiles");
+        if (!directory.exists()) {
+            boolean success = directory.mkdirs();
+            if (!success) {
+                Log.d("log-saveByteArrayToInternalStorage", "Failed to create directory");
+                return false;
+            }
+        }
+
+        // Create the file path
+        File imagePath = new File(directory, "" + CID + user_login_id + ".png");
+        // Save the bitmap image to the file
+        try (OutputStream outputStream = new FileOutputStream(imagePath)) {
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+            outputStream.flush();
+            Log.d("log-saveImageToInternalStorage", "Saved image at path: " + imagePath.getAbsolutePath());
+            Log.d("log-saveImageToInternalStorage", "Saved image of size : " + bitmapImage.getWidth() + "*" + bitmapImage.getHeight());
+        return  true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d("log-saveImageToInternalStorage", "Image Save failed " + e.toString());
+        }
+        // Print the absolute path of the saved image
+        return  false;
+    }
+
     private final Emitter.Listener onMassegeReachReadReceipt = new Emitter.Listener() {
         @SuppressLint("NotifyDataSetChanged")
         @Override
         public void call(final Object... args) {
             int requestCode = Integer.parseInt(String.valueOf(args[0]));
-            Log.d("log-MainActivity", "onMassegeReachReadReceipt || start requestCode:" + requestCode);
+            Log.d("log-onMassegeReachReadReceipt", "onMassegeReachReadReceipt || start requestCode:" + requestCode);
             if (requestCode == 1) {
-                int viewStatus = Integer.parseInt(String.valueOf(args[1]));
-                JSONObject data = (JSONObject) args[2];
+                JSONObject data = (JSONObject) args[1];
                 try {
-                    long massege_sent_time = Long.parseLong(String.valueOf(data.get("massege_sent_time")));
-                    long sender_id = Long.parseLong(String.valueOf(data.get("sender_id")));
-                    long receiver_id = Long.parseLong(String.valueOf(data.get("receiver_id")));
-                    Log.d("log-onMassegeReachReadReceipt-result", "page is opened obj"+data);
-                    if (Contact_page_opened_id == receiver_id) {
-                        ArrayList<MassegeEntity> x = ContactMassegeDetailsView.massegeArrayList;
-                        for (int j = x.size() - 1; j >= 0; j--) {
-                            if (x.get(j).getTimeOfSend() == massege_sent_time && x.get(j).getReceiverId() == receiver_id) {
-                                x.get(j).setMassegeStatus(viewStatus);
-                            }
-                        }
-                        ContactMassegeDetailsView.massegeRecyclerViewAdapter.notifyDataSetChanged();
+                    int viewStatus = Integer.parseInt(String.valueOf(data.get("massegeStatus")));
+                    long massege_sent_time = Long.parseLong(String.valueOf(data.get("time")));
+                    String sender_id = String.valueOf(data.get("from"));
+                    String receiver_id = String.valueOf(data.get("to"));
+
+                    if (Contact_page_opened_id.equals(receiver_id)) {
+                        Log.d("log-onMassegeReachReadReceipt", "page is opened obj" + data);
+                        massegeListAdapter.updateMassegeStatus(receiver_id, massege_sent_time, viewStatus);
                     }
+
+                    // update view status into database
                     Thread t = new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            massegeDao.updateMassegeStatus(sender_id, receiver_id, massege_sent_time, viewStatus);
+                            int massegeStatus = massegeDao.getMassegeStatus(sender_id, receiver_id, massege_sent_time, user_login_id);
+                            if (massegeStatus < viewStatus) {
+                                massegeDao.updateMassegeStatus(sender_id, receiver_id, massege_sent_time, viewStatus, user_login_id);
+                            }
                         }
                     });
                     t.start();
 
-
+                    JSONArray x;
+                    try {
+                        x = new JSONArray();
+                        x.put(data);
+                        socket.emit("massege_reach_read_receipt_acknowledgement", 1, user_login_id, x);
+                        Log.d("log-onMassegeReachReadReceipt", "massege_reach_read_receipt_acknowledgement event emitted");
+                    } catch (Exception e) {
+                        Log.d("log-onMassegeReachReadReceipt", "Exception || e:" + e);
+                    }
                 } catch (Exception e) {
                     Log.d("log-MA-onMassegeReachReadReceipt", "Exception || e:" + e);
-                }
-
-            } else if (requestCode == 2) {
-                int viewStatus = Integer.parseInt(String.valueOf(args[1]));
-                JSONArray result = (JSONArray) args[2];
-                try {
-                    for (int i = 0; i < result.length(); i++) {
-                        JSONObject tmp = (JSONObject) result.get(i);
-                        long CHAT_ID = Long.parseLong(String.valueOf(tmp.get("chat_id")));
-                        long MassegeID = Long.parseLong(String.valueOf(tmp.get("massege_number")));
-                        if (Contact_page_opened_id == Long.parseLong(String.valueOf(tmp.get("receiver_id")))) {
-                            Log.d("log-onMassegeReachReadReceipt-result", "call: page is opened whose massege is arrived");
-                            ArrayList<MassegeEntity> x = ContactMassegeDetailsView.massegeArrayList;
-                            for (int j = x.size() - 1; j >= 0; j--) {
-                                if (x.get(j).getChat_id() == CHAT_ID) {
-                                    x.get(j).setMassegeStatus(viewStatus);
-                                }
-                            }
-                            ContactMassegeDetailsView.massegeRecyclerViewAdapter.notifyDataSetChanged();
-                        }
-                        Thread t = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                massegeDao.updateMassegeStatus(MassegeID, CHAT_ID, viewStatus);
-                            }
-                        });
-                        t.start();
-                    }
-                } catch (Exception e) {
-                    Log.d("log-MainActivity", "onMassegeReachReadReceipt || Exception:" + e);
-                }
-            } else if (requestCode == 3) {
-                long userId = Long.parseLong(String.valueOf(args[1]));
-                JSONArray result = (JSONArray) args[2];
-                try {
-                    for (int i = 0; i < result.length(); i++) {
-                        JSONObject tmp = (JSONObject) result.get(i);
-                        long CHAT_ID = Long.parseLong(String.valueOf(tmp.get("chat_id")));
-                        long MassegeID = Long.parseLong(String.valueOf(tmp.get("massege_number")));
-                        int viewStatus = Integer.parseInt(String.valueOf(tmp.get("View_Status")));
-                        Log.d("log-MA-reciept", "JSONObjet:" + tmp.toString());
-                        if (Contact_page_opened_id == Long.parseLong(String.valueOf(tmp.get("receiver_id")))) {
-                            Log.d("log-onMassegeReachReadReceipt-result", "call: page is opened whose massege is arrived");
-                            ArrayList<MassegeEntity> x = ContactMassegeDetailsView.massegeArrayList;
-                            for (int j = x.size() - 1; j >= 0; j--) {
-                                if (x.get(j).getChat_id() == CHAT_ID) {
-                                    x.get(j).setMassegeStatus(Integer.parseInt((String) tmp.get("View_Status")));
-                                }
-                            }
-                            ContactMassegeDetailsView.massegeRecyclerViewAdapter.notifyDataSetChanged();
-                        }
-                        Thread t = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.d("log-MA-reciept", "thread is running");
-                                int r = massegeDao.updateMassegeStatus(MassegeID, CHAT_ID, viewStatus);
-                                Log.d("log-MA-reciept", "updateMassegeStatus r:" + r);
-
-                            }
-                        });t.start();
-                    }
-                    socket.emit("massege_reach_read_receipt_acknowledgement",user_login_id,requestCode,result );
-                } catch (Exception e) {
-                    Log.d("log-MainActivity", "onMassegeReachReadReceipt || Exception:" + e);
                 }
             } else {
                 Log.d("log-MainActivity", "onMassegeReachReadReceipt || request code :" + requestCode);
             }
         }
     };
-    private final Emitter.Listener onJoinAcknowledgement = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            Log.d("log-MainActivity", "onJoinAcknowledgement: join success ");
 
-            List<MassegeEntity> tmp3, tmp4;
-            //we have to get list of all masseges and send them to server at user came online
-            MassegeHolderForSpecificPurpose mhsp = new MassegeHolderForSpecificPurpose(db, 1);
-            tmp3 = mhsp.getMassegeList();
-            try {
-                JSONArray massegeData = new JSONArray();
-                for (int i = 0; i < tmp3.size(); i++) {
-                    MassegeEntity tmp1 = tmp3.get(i);
-                    try {
-                        JSONObject massegeOBJ = new JSONObject();
-                        massegeOBJ.put("sender_id", tmp1.getSenderId());
-                        massegeOBJ.put("user_massege", tmp1.getMassege());
-                        massegeOBJ.put("C_ID", tmp1.getReceiverId());
-                        massegeOBJ.put("Chat_id", tmp1.getChat_id());
-                        massegeOBJ.put("time_of_send", tmp1.getTimeOfSend());
-                        massegeOBJ.put("massege_status", 0);
-                        massegeData.put(massegeOBJ);
-                    } catch (Exception ex) {
-                        Log.d("log-onJoinAcknowledgement", "exception || :" + ex);
-                        Log.d("log-onJoinAcknowledgement", "exception || massegeData : " + massegeData);
-                        Log.d("log-onJoinAcknowledgement", "exception || tmp3.size() : " + massegeData.length());
-                    }
-                }
-                if (tmp3.size() > 0) {
-                    socket.emit("massege_sent_when_user_come_to_online", user_login_id, massegeData, massegeData.length());
-                    Log.d("log-MainActivity", "onJoinAcknowledgement || massegeData size :" + massegeData.length());
-                }
-            } catch (Exception e) {
-                Log.d("log-MainActivity", "onJoinAcknowledgement || exception :" + e);
-            }
-
-
-            //we have to maintain consistancy of MassegeId in database
-            MassegeHolderForSpecificPurpose mhsp2 = new MassegeHolderForSpecificPurpose(db, 2);
-            tmp4 = mhsp2.getMassegeList();
-            try {
-                JSONArray massegeData = new JSONArray();
-                for (int i = 0; i < tmp4.size(); i++) {
-                    MassegeEntity tmp1 = tmp4.get(i);
-                    try {
-                        JSONObject massegeOBJ = new JSONObject();
-                        massegeOBJ.put("sender_id", tmp1.getSenderId());
-                        massegeOBJ.put("C_ID", tmp1.getReceiverId());
-                        massegeOBJ.put("Chat_id", tmp1.getChat_id());
-                        massegeData.put(massegeOBJ);
-                    } catch (Exception ex) {
-                        Log.d("log-onJoinAcknowledgement", "exception || :" + ex);
-                    }
-                }
-                if (tmp4.size() > 0) {
-                    socket.emit("massege_number_fetch", user_login_id, massegeData, massegeData.length());
-                    Log.d("log-MainActivity", "onJoinAcknowledgement || massegeData size :" + massegeData.length());
-                }
-            } catch (Exception e) {
-                Log.d("log-MainActivity", "onJoinAcknowledgement || exception :" + e);
-            }
-
-        }
-    };
-    private final Emitter.Listener onMSWUCTOAcknowledgement = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            Log.d("log-MainActivity", "onMHTSACAcknowledgement || start ");
-            long userId = Long.parseLong(String.valueOf(args[0]));
-            JSONArray massegeReturnData = (JSONArray) args[1];
-
-            for (int i = 0; i < massegeReturnData.length(); i++) {
-                try {
-                    long CHAT_ID = Long.parseLong(String.valueOf(massegeReturnData.get(i)));
-                    Log.d("log-MainActivity", "onMHTSACAcknowledgement || data[" + i + "] = " + massegeReturnData.get(i) + " in long format : " + CHAT_ID);
-                    // updating the massege_status in dataBase
-                    massegeDao.updateMassegeStatus(CHAT_ID, 1);
-
-                } catch (Exception e) {
-                    Log.d("log-MainActivity", "onMHTSACAcknowledgement || exception :" + e);
-                }
-            }
-
-        }
-    };
+    //completed
     private final Emitter.Listener onMassegeArriveFromServer = new Emitter.Listener() {
         @SuppressLint("NotifyDataSetChanged")
         @Override
@@ -608,45 +741,41 @@ public class MainActivity extends FragmentActivity {
             } catch (Exception e) {
                 Log.d("log-exception-in-massege-arrive", "call: Exception is : " + e);
             }
-            Log.d("log-MainActivity", "onMassegeArriveFromServer || requestCode is : " + requestCode);
-            Log.d("log-MainActivity", "onMassegeArriveFromServer || args:" + String.valueOf(acknowledgement_id));
+            Log.d("log-onMassegeArriveFromServer3", "onMassegeArriveFromServer || requestCode is : " + requestCode);
 
             //at send by user imidiate
-            if (requestCode == 3) {
+            if (requestCode == 0) {
                 long new_massege_time_of_send = -1;
                 try {
                     JSONObject new_massege = (JSONObject) args[1];
-                    Log.d("log-onMassegeArriveFromServer3", "args" + new_massege.toString());
-                    long new_massege_sender_id = Long.parseLong(String.valueOf(new_massege.get("sender_id")));
-                    new_massege_time_of_send = (long) new_massege.get("time_of_send");
+                    Log.d("log-onMassegeArriveFromServer3", "args : " + new_massege.toString());
+
+                    String new_massege_sender_id = String.valueOf(new_massege.get("from"));
+                    new_massege_time_of_send = (long) new_massege.get("time");
                     ArrayList<ContactWithMassengerEntity> contactArrayList1;
-                    contactArrayList1 = MainActivity.contactArrayList;
+                    contactArrayList1 = contactArrayList;
 
                     int viewStatus = 2;
-                    MassegeEntity newMassegeEntity1 = new MassegeEntity(new_massege_sender_id, user_login_id, String.valueOf(new_massege.get("user_massege")), new_massege_time_of_send, 1);
+                    MassegeEntity newMassegeEntity1 = new MassegeEntity(new_massege_sender_id, user_login_id, String.valueOf(new_massege.get("massege")), new_massege_time_of_send, viewStatus);
+
+                    Log.d("log-onMassegeArriveFromServer3", "time : " + new_massege_time_of_send);
                     for (int i = 0; i < contactArrayList1.size(); i++) {
-                        if (contactArrayList1.get(i).getC_ID() == new_massege_sender_id) {
-                            if (new_massege_sender_id == Contact_page_opened_id) {
-                                Log.d("log-onMassegeArriveFromServer3", "Contact page is not opened");
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
+                        if (contactArrayList1.get(i).getCID().equals(new_massege_sender_id)) {
+                            //means massege arrive from known or saved contacts
+                            Log.d("log-onMassegeArriveFromServer3", "massege arrive from known sources : ");
+                            if (new_massege_sender_id.equals(Contact_page_opened_id)) {
+                                Log.d("log-onMassegeArriveFromServer3", "Contact page is opened");
 
-                                        if (massegeDao.getMassegeByTimeOfSend(newMassegeEntity1.getSenderId(), newMassegeEntity1.getTimeOfSend()) == null) {
+                                viewStatus = 3;
+                                MassegeEntity newMassegeEntity2 = new MassegeEntity(new_massege_sender_id, user_login_id, String.valueOf(new_massege.get("massege")), new_massege_time_of_send, viewStatus);
+                                massegeListAdapter.addMassege(newMassegeEntity2, 1);//1 contact page is opened
+                                MassegePopSoundThread massegePopSoundThread = new MassegePopSoundThread(MainActivity.this, 0);
+                                massegePopSoundThread.start();
 
-                                            MassegePopSoundThread massegePopSoundThread = new MassegePopSoundThread(MainActivity.this, 0);
-                                            massegePopSoundThread.start();
-
-                                            massegeArrayList.add(newMassegeEntity1);
-                                            massegeRecyclerViewAdapter.notifyDataSetChanged();
-                                            massege_recyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
-                                        }
-                                    }
-                                });
-                                viewStatus=3;
                             } else {
-                                Log.d("log-onMassegeArriveFromServer3", "contact page is not opened");
+                                Log.d("log-onMassegeArriveFromServer3", "Contact page is not opened");
                                 int index = i;
+
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -656,7 +785,7 @@ public class MainActivity extends FragmentActivity {
                                         Thread t = new Thread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                massegeDao.incrementNewMassegeArriveValue(new_massege_sender_id);
+                                                massegeDao.incrementNewMassegeArriveValue(new_massege_sender_id, user_login_id);
                                             }
                                         });
                                         t.start();
@@ -669,29 +798,32 @@ public class MainActivity extends FragmentActivity {
                                         MainActivity.ChatsRecyclerView.scrollToPosition(MainActivity.recyclerViewAdapter.getItemCountMyOwn());
                                     }
                                 });
-                            }
 
-                            Thread massegeInsertIntoDatabase = new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    MassegeDao massegeDao = db.massegeDao();
-                                    MassegeEntity x = massegeDao.getMassegeByTimeOfSend(newMassegeEntity1.getSenderId(), newMassegeEntity1.getTimeOfSend());
-                                    if (x == null) {
-                                        massegeDao.insertMassegeIntoChat(newMassegeEntity1);
-                                        Log.d("log-onMassegeArriveFromServer3", "massege is inserted into database successfully");
-                                    } else {
-                                        Log.d("log-onMassegeArriveFromServer3", "X: " + x);
-                                        Log.d("log-onMassegeArriveFromServer3", "X: " + x.getMassegeID());
+                                Thread massegeInsertIntoDatabase = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        MassegeDao massegeDao = db.massegeDao();
+                                        try {
+                                            massegeDao.insertMassegeIntoChat(newMassegeEntity1);
+                                            Log.d("log-onMassegeArriveFromServer3", "massege is inserted into database successfully");
+                                        } catch (Exception e) {
+                                            showPopUpMessage(e.toString());
+                                            Log.d("log-sql-exception", e.toString() + " for massege:" + newMassegeEntity1.getMassege() + ", s_id:" + newMassegeEntity1.getSenderId() + ", r_id:" + newMassegeEntity1.getReceiverId() + ", time:" + newMassegeEntity1.getTimeOfSend() + ", status:" + newMassegeEntity1.getMassegeStatus());
+                                            updateMassegeStatusFromException(new_massege);
+                                        }
                                     }
-                                }
-                            });
-                            massegeInsertIntoDatabase.start();
+                                });
+                                massegeInsertIntoDatabase.start();
+                            }
+                        } else {
+                            //means massege arrive from unknown or new contact
+                            Log.d("log-onMassegeArriveFromServer3", "massege arrive from known sources : ");
                         }
                     }
                     Thread checkContactSavedInDB = new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ContactWithMassengerEntity x = massegeDao.getContactWith_CID(newMassegeEntity1.getSenderId());
+                            ContactWithMassengerEntity x = massegeDao.getContactWith_CID(newMassegeEntity1.getSenderId(), user_login_id);
                             if (x == null) {
                                 Log.d("log-onMassegeArriveFromServer3", "setPriorityRankThread1");
                                 FetchDataFromServerAndSaveIntoDB(newMassegeEntity1.getSenderId());
@@ -699,8 +831,8 @@ public class MainActivity extends FragmentActivity {
                                 Thread setPriorityRankThread = new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        long HighestPriority = massegeDao.getHighestPriorityRank();
-                                        massegeDao.setPriorityRank(newMassegeEntity1.getSenderId(), HighestPriority + 1);
+                                        long HighestPriority = massegeDao.getHighestPriorityRank(user_login_id);
+                                        massegeDao.setPriorityRank(newMassegeEntity1.getSenderId(), HighestPriority + 1, user_login_id);
                                         MainContactListHolder.updatePositionOfContact(newMassegeEntity1.getSenderId(), MainActivity.this);
                                     }
                                 });
@@ -710,14 +842,19 @@ public class MainActivity extends FragmentActivity {
                     });
                     checkContactSavedInDB.start();
 
+
+                    JSONArray jsonArray = new JSONArray();
                     try {
                         JSONObject tmpOBJ = new JSONObject();
-                        tmpOBJ.put("receiver_id", newMassegeEntity1.getReceiverId());
-                        tmpOBJ.put("sender_id", new_massege_sender_id);
-                        tmpOBJ.put("massege_sent_time", new_massege_time_of_send);
-                        tmpOBJ.put("View_Status", viewStatus);
-                        socket.emit("massege_reach_read_receipt_acknowledgement",3,user_login_id, tmpOBJ);
-                        Log.d("log-onMassegeArriveFromServer3", "massege_reach_read_receipt_acknowledgement socket emit :"+tmpOBJ);
+                        tmpOBJ.put("to", newMassegeEntity1.getReceiverId());
+                        tmpOBJ.put("from", new_massege_sender_id);
+                        tmpOBJ.put("time", new_massege_time_of_send);
+                        tmpOBJ.put("massegeStatus", viewStatus);
+                        jsonArray.put(tmpOBJ);
+                        if (!Objects.equals(new_massege_sender_id, user_login_id)) {
+                            socket.emit("massege_reach_read_receipt", 3, user_login_id, jsonArray);// ViewStatus 2 means at contact's database and 3 means read by contact
+                        }
+                        Log.d("log-onMassegeArriveFromServer3", "massege_reach_read_receipt_acknowledgement socket emit :" + jsonArray);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -725,60 +862,78 @@ public class MainActivity extends FragmentActivity {
                     Log.d("log-onMassegeArriveFromServer-Exception", "call: error while parsing data : " + e);
                 }
 
-            } else if (requestCode == 1) {
-                Thread OnMassegeArriveThread1 = new onMassegeArriveThread1(MainActivity.this, statusForThread, args);
-                OnMassegeArriveThread1.start();
-
-            } else if (requestCode == 2) {
-                Log.d("log-requestCode", "call: requestCode is : " + requestCode);
             } else {
-                Log.d("log-requestCode", "call: requestCode enter in else condition : ");
+
+                showPopUpMessage("onMassegeArriveFromServer unHandled requestCode arrive : " + requestCode);
+//                Toast.makeText(MainActivity.this, "onMassegeArriveFromServer unHandled requestCode arrive : "+requestCode, Toast.LENGTH_LONG).show();
+                Log.d("log-onMassegeArriveFromServer", "onMassegeArriveFromServer unHandled requestCode arrive : " + requestCode);
             }
         }
     };
 
+
+    //check if status is updatable or not and update
+    private void updateMassegeStatusFromException(JSONObject new_massege) {
+        try {
+            int massegeStatus = (int) new_massege.get("massegeStatus");
+            String s = String.valueOf(new_massege.get("from"));
+            String r = String.valueOf(new_massege.get("to"));
+            long t = (long) new_massege.get("time");
+            int vs = massegeDao.getMassegeStatus(s, r, t, user_login_id);
+            if (vs < massegeStatus) {
+                massegeDao.updateMassegeStatus(s, r, t, massegeStatus, user_login_id);
+            }
+        } catch (Exception e) {
+            Log.d("log-updateMassegeStatusFromException-function", e.toString());
+        }
+    }
+
+    //completed
     private final Emitter.Listener onMassegeReachAtServerFromCMDV = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
             JSONObject new_massege;
             try {
                 new_massege = (JSONObject) args[1];
-                long CHAT_ID = Long.parseLong(String.valueOf(new_massege.get("Chat_id")));
-                massegeDao.updateMassegeStatus(CHAT_ID, 1);
-                Log.d("log-onMassegeReachAtServer-args", new_massege.toString());
+                long time = Long.parseLong(String.valueOf(new_massege.get("time")));
+                String sender_id = String.valueOf(new_massege.get("from"));
+                String receiver_id = String.valueOf(new_massege.get("to"));
+
+                //massegeListHolder update required;
+                int massegeStatus = massegeDao.getMassegeStatus(sender_id, receiver_id, time, user_login_id);
+                if (massegeStatus < 1) {
+                    massegeDao.updateMassegeStatus(sender_id, receiver_id, time, 1, user_login_id);
+                }
+                Log.d("log-onMassegeReachAtServerFromCMDV", new_massege.toString());
             } catch (Exception e) {
-                Log.d("log-MA-onMassegeReachAtServerFromCMDV", "Exception || e:" + e);
-
+                Log.d("log-onMassegeReachAtServerFromCMDV", "Exception || e:" + e);
             }
-
         }
     };
 
-    private final Emitter.Listener onMassegeReachReceiptFromServer = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            Log.d("log-onMassegeReachReceiptFromServer", "call: onMassegeReachReceiptFromServer enter");
-        }
-    };
 
-    private final Emitter.Listener onMassegeNotSentToUser = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            Log.d("log-socket-massege", "call: massage not sent to user ");
-        }
-    };
-    private final Emitter.Listener onMassegeSentToUser = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            Log.d("log-socket-massege", "call: massage is sent to user ");
-        }
-    };
-    private final Emitter.Listener onMassegeSeenByUser = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            Log.d("log-socket-massege", "call: massage is seen by user ");
-        }
-    };
+    private void showPopUpMessage(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View popUpView = getLayoutInflater().inflate(R.layout.popup_message, null);
+        builder.setView(popUpView);
+        TextView messageTextView = popUpView.findViewById(R.id.messageTextView);
+        Button closeButton = popUpView.findViewById(R.id.closeButton);
+        messageTextView.setText(message);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog alertDialog = builder.create();
+                closeButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        alertDialog.dismiss();
+                    }
+                });
+                alertDialog.show();
+            }
+        });
+
+    }
 
 
     public void getMainSideMenu(View view) {
@@ -791,7 +946,7 @@ public class MainActivity extends FragmentActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.MainMenuSetting) {
-                    Intent intent = new Intent(MainActivity.this, ProfileUploadActivity.class);
+                    Intent intent = new Intent(MainActivity.this, AllSettingsActivity.class);
                     startActivity(intent);
                 } else if (item.getItemId() == R.id.MainMenuBG) {
                     Intent intent = new Intent(MainActivity.this, BgImageSetForContactPage.class);
@@ -803,7 +958,6 @@ public class MainActivity extends FragmentActivity {
             }
         });
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -829,9 +983,22 @@ public class MainActivity extends FragmentActivity {
 //                Toast.makeText(MainActivity.this, "ContactPermission Denied", Toast.LENGTH_SHORT).show();
                 Toast.makeText(MainActivity.this, "To Use Our App YOu must Give the Contact Permission and manual ync Contact Later", Toast.LENGTH_SHORT).show();
             }
+        } else if (requestCode == PERMISSION_ALL) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            } else {
+                Toast.makeText(MainActivity.this, "To use Massenger please give all permissions", Toast.LENGTH_SHORT).show();
+                initContentResolver();
+            }
+
+        } else if (requestCode == PERMISSION_initContentResolver) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                initContentResolver();
+            } else {
+                Toast.makeText(MainActivity.this, "To use Massenger you must give the Contact Read and Write permission, please restart the app", Toast.LENGTH_SHORT).show();
+//                initContentResolver();
+            }
         }
     }
-
 
     private void saveFireBaseTokenToServer(String user_login_id) {
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
@@ -892,11 +1059,11 @@ public class MainActivity extends FragmentActivity {
         });
     }
 
-
     private void startNetworkListener() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(ConnectivityManager.class);
         connectivityManager.requestNetwork(networkRequest, networkCallback);
     }
+
     private final NetworkRequest networkRequest = new NetworkRequest.Builder().addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).addTransportType(NetworkCapabilities.TRANSPORT_WIFI).addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR).build();
     private final ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
         @Override

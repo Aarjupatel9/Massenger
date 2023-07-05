@@ -168,7 +168,6 @@ public class LoginActivity extends Activity {
 
     }
 
-
     private void checkHaveToRegister(String user_number, String user_password) {
         loadingPB.setVisibility(View.VISIBLE);
         // creating a new variable for our request queue
@@ -185,7 +184,7 @@ public class LoginActivity extends Activity {
                     Log.d("log-response-status", status);
 
                     if (status.equals("1")) {
-                        int user_id = Integer.parseInt(respObj.getString("user_id"));
+                        String user_id = (String)respObj.getString("user_id");
                         Log.d("log-user-id", String.valueOf(user_id));
                         login(user_number, user_password, user_id);
                     } else if (status.equals("2")) {
@@ -216,7 +215,7 @@ public class LoginActivity extends Activity {
         requestQueue.add(request);
     }
 
-    public void login(String user_number, String user_password, int user_id) {
+    public void login(String user_number, String user_password, String user_id) {
         //here we are storing login details to local database
         Log.d("LoginActivity", "login method start");
 
@@ -235,19 +234,10 @@ public class LoginActivity extends Activity {
         setResult(Activity.RESULT_OK, returnIntent);
         finish();
     }
-
-//    public void registerRedirectFL(View view) {
-//        Log.d("log-register logined", "in method enter");
-//        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-//        startActivity(intent);
-//        Toast.makeText(this, "work in prosecc", Toast.LENGTH_SHORT).show();
-//    }
-
     public void ResetPassword(View view) {
         Log.d("log-register", "ResetPassword : in method enter");
         setContentView(R.layout.activity_app_reset_password);
     }
-
 
     private void SignUp(String user_number, String user_password, String user_name) {
         loadingPB.setVisibility(View.VISIBLE);

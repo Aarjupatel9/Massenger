@@ -7,28 +7,31 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "login")
 public class loginDetailsEntity {
+    @NonNull
     @PrimaryKey
-    public long U_ID;
+    public String UID;
     @ColumnInfo(name = "MobileNumber")
     public Long MobileNumber;
     @ColumnInfo(name = "password")
     public String Password;
     @ColumnInfo(name = "DisplayUserName")
     public String DisplayUserName;
+    @ColumnInfo(name = "About")
+    public String About;
 
     public loginDetailsEntity() {
     }
-
-//    public loginDetails_entity(@NonNull String Password, Long MobileNumber) {
-//        this.Password = Password;
-//        this.MobileNumber = MobileNumber;
-//    }
-
-    public loginDetailsEntity(long U_ID, @NonNull String Password, Long MobileNumber, String DisplayUserName) {
+    public loginDetailsEntity(String UID, @NonNull String Password, Long MobileNumber, String DisplayUserName) {
         this.Password = Password;
         this.MobileNumber = MobileNumber;
-        this.U_ID = U_ID;
+        this.UID = UID;
         this.DisplayUserName = DisplayUserName;
+    }
+    public String getAbout() {
+        return About;
+    }
+    public void setAbout(String about) {
+        About = about;
     }
 
     @NonNull
@@ -47,13 +50,13 @@ public class loginDetailsEntity {
     }
 
     @NonNull
-    public void setU_ID(int U_ID) {
-        this.U_ID = U_ID;
+    public void setUID(String UID) {
+        this.UID = UID;
     }
 
     @NonNull
-    public long getU_ID() {
-        return this.U_ID;
+    public String getUID() {
+        return this.UID;
     }
 
     @NonNull

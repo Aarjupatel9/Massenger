@@ -2,7 +2,7 @@ package com.example.mank.ThreadPackages;
 
 import static com.example.mank.ContactMassegeDetailsView.massegeArrayList;
 import static com.example.mank.ContactMassegeDetailsView.massegeRecyclerViewAdapter;
-import static com.example.mank.ContactMassegeDetailsView.massege_recyclerView;
+import static com.example.mank.ContactMassegeDetailsView.ContactMassegeRecyclerView;
 import static com.example.mank.MainActivity.Contact_page_opened_id;
 import static com.example.mank.MainActivity.FetchDataFromServerAndSaveIntoDB;
 import static com.example.mank.MainActivity.MainActivityStaticContext;
@@ -59,7 +59,6 @@ public class onMassegeArriveThread1 extends Thread {
 //                Log.d("log-onMassegeArriveFromServer1", "MainActivity.contactArrayList != null");
                 ArrayList<ContactWithMassengerEntity> contactArrayList1;
                 contactArrayList1 = MainActivity.contactArrayList;
-
                 for (int i = 0; i < result.length(); i++) {
                     JSONObject tmp = (JSONObject) result.get(i);
                     tmp2 = new JSONObject();
@@ -67,33 +66,35 @@ public class onMassegeArriveThread1 extends Thread {
                     tmp2.put("sender_id", tmp.get("sender_id"));
                     tmp2.put("receiver_id", tmp.get("receiver_id"));
                     returnArray.put(tmp2);
-                    if (Contact_page_opened_id == (int) tmp.get("sender_id")) {
+                    if (Contact_page_opened_id.equals(tmp.get("sender_id"))) {
                         Log.d("log-onMassegeArriveFromServer1-result", "call: page is opened whose massege is arrived");
                     }
-
                     //now we have to insert massege into database
-                    long MassegeId = Long.parseLong(String.valueOf(tmp.get("massege_number")));
-                    long sender_id = Long.parseLong(String.valueOf(tmp.get("sender_id")));
+                    String MassegeId = String.valueOf(tmp.get("massege_number"));
+                    String sender_id = String.valueOf(tmp.get("sender_id"));
                     long time_of_sent = Long.parseLong(String.valueOf(tmp.get("massege_sent_time")));
                     String massege = String.valueOf(tmp.get("massage"));
-                    MassegeEntity new_massege = new MassegeEntity(MassegeId, sender_id, user_login_id, massege, time_of_sent, 1);
+                    MassegeEntity new_massege = new MassegeEntity(sender_id, user_login_id, massege, time_of_sent, 1);
 
                     Thread massegeInsertIntoDatabase = new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            MassegeEntity x = massegeDao.getMassegeByMassegeID(new_massege.getMassegeID());
+                            MassegeEntity x = massegeDao.getMassegeByTimeOfSend(new_massege.getSenderId(),new_massege.getTimeOfSend(), user_login_id);
                             if (x == null) {
-                                massegeDao.insertMassegeIntoChat(new_massege);
-                                Log.d("log-onMassegeArriveFromServer1", "massege is inserted into database successfully");
+                                try {
+                                    massegeDao.insertMassegeIntoChat(new_massege);
+                                    Log.d("log-onMassegeArriveFromServer1", "massege is inserted into database successfully");
+                                } catch (Exception e) {
+                                    Log.d("log-sql-exception", e.toString());
+                                }
                             }
                         }
                     });
                     massegeInsertIntoDatabase.start();
-
                     Thread checkContactSavedInDB = new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            ContactWithMassengerEntity x = massegeDao.getContactWith_CID(new_massege.getSenderId());
+                            ContactWithMassengerEntity x = massegeDao.getContactWith_CID(new_massege.getSenderId(), user_login_id);
                             if (x == null) {
                                 Log.d("log-onMassegeArriveFromServer3", "setPriorityRankThread1");
                                 FetchDataFromServerAndSaveIntoDB(new_massege.getSenderId());
@@ -101,8 +102,8 @@ public class onMassegeArriveThread1 extends Thread {
                                 Thread setPriorityRankThread = new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        long HighestPriority = massegeDao.getHighestPriorityRank();
-                                        massegeDao.setPriorityRank(new_massege.getSenderId(), HighestPriority + 1);
+                                        long HighestPriority = massegeDao.getHighestPriorityRank(user_login_id);
+                                        massegeDao.setPriorityRank(new_massege.getSenderId(), HighestPriority + 1, user_login_id);
                                         MainContactListHolder.updatePositionOfContact(new_massege.getSenderId(), MainActivityStaticContext);
 
                                     }
@@ -116,9 +117,9 @@ public class onMassegeArriveThread1 extends Thread {
 
 //                    Log.d("log-onMassegeArriveFromServer1", "contactArrayList1.size():" + contactArrayList1.size());
                     for (int j = 0; j < contactArrayList1.size(); ++j) {
-                        if (contactArrayList1.get(j).getC_ID() == sender_id) {
+                        if (contactArrayList1.get(j).getCID().equals(sender_id)) {
 //                            Log.d("log-onMassegeArriveFromServer1", "enter in if cond. sender_id is:" + sender_id +" and contactArrayList1.get(i).getC_ID():"+contactArrayList1.get(i).getC_ID());
-                            if (sender_id == Contact_page_opened_id) {
+                            if (sender_id.equals(Contact_page_opened_id)) {
 //                                Log.d("log-onMassegeArriveFromServer1", "enter in if cond.");
                                 Objects.requireNonNull(getActivity(Context)).runOnUiThread(new Runnable() {
                                     @SuppressLint("NotifyDataSetChanged")
@@ -134,7 +135,7 @@ public class onMassegeArriveThread1 extends Thread {
                                         massegePopSound.start();
                                         massegeArrayList.add(new_massege);
                                         massegeRecyclerViewAdapter.notifyDataSetChanged();
-                                        massege_recyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
+                                        ContactMassegeRecyclerView.scrollToPosition(massegeRecyclerViewAdapter.getItemCountMyOwn());
                                     }
                                 });
                             } else {
@@ -157,7 +158,7 @@ public class onMassegeArriveThread1 extends Thread {
                                             @Override
                                             public void run() {
                                                 MassegeDao massegeDao = db.massegeDao();
-                                                massegeDao.incrementNewMassegeArriveValue(sender_id);
+                                                massegeDao.incrementNewMassegeArriveValue(sender_id, user_login_id);
                                             }
                                         });
                                         t.start();

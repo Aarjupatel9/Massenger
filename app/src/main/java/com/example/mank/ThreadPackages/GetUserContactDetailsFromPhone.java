@@ -1,5 +1,7 @@
 package com.example.mank.ThreadPackages;
 
+import static com.example.mank.MainActivity.user_login_id;
+
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -64,7 +66,7 @@ public class GetUserContactDetailsFromPhone extends Thread {
                         if (number.charAt(0) == '+') {
                             number = number.substring(3);
                         }
-                        allContactOfUserEntity = new AllContactOfUserEntity(Long.parseLong(number), display_name, -1);
+                        allContactOfUserEntity = new AllContactOfUserEntity(Long.parseLong(number), display_name, "-1");
                     } catch (IndexOutOfBoundsException e) {
                         Log.d("log-GetUserContactDetailsFromPhone", "IndexOutOfBoundsException: for " + number + " || " + e);
                     } catch (Exception e) {
@@ -78,7 +80,7 @@ public class GetUserContactDetailsFromPhone extends Thread {
                     ContactDetails.put(jsonParam);
 
                     allContactOfUserEntityList.add(allContactOfUserEntity);
-                    List<AllContactOfUserEntity> x = massegeDao.getSelectedAllContactOfUserEntity(allContactOfUserEntity.getMobileNumber());
+                    List<AllContactOfUserEntity> x = massegeDao.getSelectedAllContactOfUserEntity(allContactOfUserEntity.getMobileNumber(), user_login_id);
                     if (x.size() == 0)
                         massegeDao.addAllContactOfUserEntity(allContactOfUserEntity);
                 }

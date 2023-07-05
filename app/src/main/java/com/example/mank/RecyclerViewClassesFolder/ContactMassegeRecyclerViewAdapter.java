@@ -22,6 +22,7 @@ import com.example.mank.R;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class ContactMassegeRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -35,7 +36,7 @@ public class ContactMassegeRecyclerViewAdapter extends RecyclerView.Adapter<Recy
 
     public int getItemViewType(int position) {
         MassegeEntity massege = massegeList.get(position);
-        if (massege.getSenderId() == user_login_id) {
+        if (Objects.equals(massege.getSenderId(), user_login_id)) {
 //            Log.d("log-recyclerview", "getItemViewType: sender id is : "+massege.getSenderId() + " userid: "+user_login_id);
 //            Log.d("log-recyclerview", "getItemViewType: ReceiverId is : "+massege.getReceiverId());
 //            Log.d("log-recyclerview", "getItemViewType: massege is : "+massege.getMassege());
@@ -70,7 +71,7 @@ public class ContactMassegeRecyclerViewAdapter extends RecyclerView.Adapter<Recy
             ViewHolderContact viewHolder = (ViewHolderContact) holder;
             MassegeEntity massege = massegeList.get(position);
             viewHolder.massege_display.setText(massege.getMassege());
-            viewHolder.massege_id.setText(String.valueOf(massege.getChat_id()));
+            viewHolder.massege_id.setText(String.valueOf(massege.getChatId()));
             Date date = new Date(massege.getTimeOfSend());
             String formatted_date = new SimpleDateFormat("HH:mm").format(date);
             viewHolder.contact_main_massege_time.setText(formatted_date);
@@ -78,7 +79,7 @@ public class ContactMassegeRecyclerViewAdapter extends RecyclerView.Adapter<Recy
             ViewHolderUser viewHolder1 = (ViewHolderUser) holder;
             MassegeEntity massege1 = massegeList.get(position);
             viewHolder1.user_main_massege.setText(massege1.getMassege());
-            viewHolder1.user_main_massege_id.setText(String.valueOf(massege1.getChat_id()));
+            viewHolder1.user_main_massege_id.setText(String.valueOf(massege1.getChatId()));
             Date date = new Date(massege1.getTimeOfSend());
             String formatted_date = new SimpleDateFormat("HH:mm").format(date);
             viewHolder1.user_main_massege_time.setText(formatted_date);
@@ -89,7 +90,7 @@ public class ContactMassegeRecyclerViewAdapter extends RecyclerView.Adapter<Recy
                 viewHolder1.user_massege_status_main.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_massege_reach_icon));
             } else if (massege1.getMassegeStatus() == 3) {
                 viewHolder1.user_massege_status_main.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_massege_read_icon));
-            } else if (massege1.getMassegeStatus() == 5) {
+            } else if (massege1.getMassegeStatus() == -1) {
                 viewHolder1.user_massege_status_main.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_offline_massege_state_icon));
             } else {
                 viewHolder1.user_massege_status_main.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_check_all));

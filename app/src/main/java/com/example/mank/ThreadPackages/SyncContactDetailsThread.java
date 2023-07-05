@@ -1,172 +1,218 @@
 package com.example.mank.ThreadPackages;
 
+import static com.example.mank.MainActivity.db;
+import static com.example.mank.MainActivity.user_login_id;
 import static com.example.mank.configuration.GlobalVariables.URL_MAIN;
 
 import android.annotation.SuppressLint;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.mank.AllContactOfUserInDeviceView;
 import com.example.mank.LocalDatabaseFiles.DAoFiles.MassegeDao;
 import com.example.mank.LocalDatabaseFiles.DataContainerClasses.contactDetailsHolderForSync;
 import com.example.mank.LocalDatabaseFiles.MainDatabaseClass;
+import com.example.mank.LocalDatabaseFiles.entities.AllContactOfUserEntity;
 import com.example.mank.LocalDatabaseFiles.entities.ContactWithMassengerEntity;
 import com.example.mank.MainActivity;
+import com.example.mank.cipher.MyCipher;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class SyncContactDetailsThread extends Thread {
-    MainActivity parent;
-    MainDatabaseClass db;
-    Cursor cursor;
-    MassegeDao massegeDao;
 
-    public SyncContactDetailsThread(MainActivity h, MainDatabaseClass db, Cursor cursor) {
-        this.parent = h;
-        this.db = db;
-        this.cursor = cursor;
+    private final Context context;
+    private int type = 0;
+    private AllContactOfUserEntity allContactOfUserEntity;
+    private List<AllContactOfUserEntity> allContactOfUserEntityList = new ArrayList<>();
+    private final List<AllContactOfUserEntity> connectedContact;
+    private List<AllContactOfUserEntity> disConnectedContact;
+    private final MassegeDao massegeDao;
+    private final MyCipher mc = new MyCipher();
+
+    private final IContactSync callback;
+
+    public SyncContactDetailsThread(Context context, List<AllContactOfUserEntity> connectedContact, List<AllContactOfUserEntity> disConnectedContact, IContactSync callback) {
+        this.context = context;
         massegeDao = db.massegeDao();
-
+        this.connectedContact = connectedContact;
+        this.disConnectedContact =disConnectedContact;
+        this.callback = callback;
     }
+
+    public void setFromWhere(int type) {
+        this.type = type;
+    }
+
+    Comparator<AllContactOfUserEntity> contactComparator = new Comparator<AllContactOfUserEntity>() {
+        @Override
+        public int compare(AllContactOfUserEntity contact1, AllContactOfUserEntity contact2) {
+            try {
+                return contact1.getDisplayName().compareToIgnoreCase(contact2.getDisplayName());
+            } catch (Exception e) {
+                Log.d("log-AllContactOfUserDeviceView", "Exception in comparator: " + e);
+                return 1;
+            }
+        }
+    };
 
     public void run() {
-        //Do your background thing here
-        Log.d("log-", "syncContactDetails: enter here");
-        JSONArray ContactDetails = new JSONArray();
-        String endpoint = URL_MAIN + "syncContactOfUser";
-        RequestQueue requestQueue = Volley.newRequestQueue(parent);
-        Log.d("log-HomePageWithContactActivity", "syncContactDetails: enter here endpoint is : " + endpoint);
-//                loadingPB.setVisibility(View.VISIBLE);
-        Log.d("log-HomePageWithContactActivity", "syncContactDetails:  before request initialize");
-        StringRequest request = new StringRequest(Request.Method.POST, endpoint, new com.android.volley.Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
+        synchronized (this) {
+            String y = user_login_id;
+            JSONArray mainArray = new JSONArray();
+            JSONArray ContactDetails = new JSONArray();
+            String endpoint = URL_MAIN + "syncContactOfUser";
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
 
-                contactDetailsHolderForSync contactDetailsHolder = new contactDetailsHolderForSync(db);
-                List<ContactWithMassengerEntity> contactList = contactDetailsHolder.getData();
+            ContentResolver contentResolver = context.getContentResolver();
+            Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 
-                int contactList_size = contactList.size();
-                Log.d("log-sync contact-database", "  setChatDetails Database Response: " + contactList_size);
-                Log.d("log-response-in-syncContact", response);
-                try {
-                    JSONObject respObj = new JSONObject(response);
-                    String mainString = respObj.getString("ja");
-                    int isOn_number = Integer.parseInt(respObj.getString("isOnnumber"));
-                    Log.d("log-allcoantact sync response", "onResponse: isOnnumber is : " + isOn_number);
-                    JSONArray responseArray = new JSONArray(mainString);
-                    int l = responseArray.length();
-                    for (int i = 0; i < isOn_number; i++) {
-                        String RowOfArray = responseArray.getString(i);
-                        JSONObject RowObject = new JSONObject(RowOfArray);
-                        Log.d("log-setChatDetails-Response", "  setChatDetails onResponse C_ID is: " + RowObject.getString("C_ID"));
-                        Log.d("log-setChatDetails-Response", "  setChatDetails onResponse number is : " + RowObject.getString("number"));
-                        Log.d("log-setChatDetails-Response", "  setChatDetails onResponse nme is : : " + RowObject.getString("name"));
+            Cursor cursor = contentResolver.query(uri, null, null, null, null);
+            Log.d("log-GetUserContactDetailsFromPhone", "getContacts: total contact is " + cursor.getCount());
 
-                        if (contactList_size == 0) {
-                            //now we have to save all details in contact table
-                            Log.d("log-sync contact-database", "  we have to save all contact with C_ID :" + Integer.parseInt(RowObject.getString("C_ID")));
-                            ContactWithMassengerEntity newEntity = new ContactWithMassengerEntity(Long.valueOf(RowObject.getString("number")), RowObject.getString("name"), Integer.parseInt(RowObject.getString("C_ID")));
-                            massegeDao.SaveContactDetailsInDatabase(newEntity);
-                        } else {
-                            //we have to check whether user is all ready connected or not
-                            //if not then save details into chat
-                            boolean already = false;
-                            for (int j = 0; j < contactList_size; j++) {
-                                ContactWithMassengerEntity contactEntity = contactList.get(j);
-                                if (contactEntity.getMobileNumber().equals(Long.valueOf(RowObject.getString("number")))) {
-                                    already = true;
-                                }
-//                                Log.d("log-sync contact-database", "  setChatDetails Database Response: " + contactEntity.getMobileNumber());
-                            }
-                            if (!already) {
-                                ContactWithMassengerEntity newEntity = new ContactWithMassengerEntity(Long.valueOf(RowObject.getString("number")), RowObject.getString("name"), Integer.parseInt(RowObject.getString("C_ID")));
-                                massegeDao.SaveContactDetailsInDatabase(newEntity);
-                            }
-                        }
-                    }
-                    //now we have delete of those contact who delete their account
-                    for (int j = 0; j < contactList.size(); j++) {
-                        boolean already = false;
-                        ContactWithMassengerEntity contactEntity = contactList.get(j);
-                        for (int i = 0; i < isOn_number; i++) {
-                            String RowOfArray = responseArray.getString(i);
-                            JSONObject RowObject = new JSONObject(RowOfArray);
-                            if (contactEntity.getMobileNumber().equals(Long.valueOf(RowObject.getString("number")))) {
-                                already = true;
-                            }
-                        }
-                        if (!already) {
-                            massegeDao.deleteContactDetailsInDatabase(contactEntity.getMobileNumber());
-                        }
-                    }
-                } catch (JSONException e) {
-                    Toast.makeText(parent, "application error! , please try again after some time", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-//                    loadingPB.setVisibility(View.GONE);
-                }
-//                parent.SetChatsView(new View(parent));
-            }
-        }, new com.android.volley.Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                // method to handle errors.
-                Log.d("log-setChatDetails-Response", "  setChatDetails error: " + error);
-//                        loadingPB.setVisibility(View.GONE);
-                Toast.makeText(parent, "sync failed Duo to  Server side error :  " + error, Toast.LENGTH_SHORT).show();
+            if (cursor.getCount() > 0) {
+                int counter = 0;
+                while (cursor.moveToNext()) {
+                    @SuppressLint("Range") String display_name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                    @SuppressLint("Range") String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    number = number.replaceAll("\\s", "");
+                    number = number.replaceAll("-", "");
+                    number = number.replaceAll("\\)", "");
+                    number = number.replaceAll("\\(", "");
 
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() {
-                // below line we are creating a map for
-                // storing our values in key and value pair.
-                Map<String, String> params = new HashMap<String, String>();
-                Log.d("log-contact", "getContacts: enterd and number is " + cursor.getCount());
-
-                if (cursor.getCount() > 0) {
-                    int counter = 0;
-                    while (cursor.moveToNext()) {
-                        @SuppressLint("Range") String display_name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                        @SuppressLint("Range") String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        number = number.replaceAll("\\s", "");
-                        number = number.replaceAll("-", "");
-                        number = number.replaceAll("\\)", "");
-                        number = number.replaceAll("\\(", "");
-
-                        JSONObject jsonParam = new JSONObject();
+                    if (number.length() > 9) {
                         try {
-                            //Add string params
-                            jsonParam.put("id", counter);
-                            jsonParam.put("name", display_name);
-                            jsonParam.put("number", number);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                            if (number.charAt(0) == '+') {
+                                number = number.substring(3);
+                            }
+                            allContactOfUserEntity = new AllContactOfUserEntity(Long.parseLong(number), display_name, "-1");
+                        } catch (IndexOutOfBoundsException e) {
+                            Log.d("log-GetUserContactDetailsFromPhone", "IndexOutOfBoundsException: for " + number + " || " + e);
+                        } catch (Exception e) {
+                            Log.d("log-GetUserContactDetailsFromPhone", "Exception: for " + number + " || " + e);
                         }
+
+                        JSONArray jsonParam = new JSONArray();
+                        jsonParam.put(mc.encrypt(counter));
+                        jsonParam.put(mc.encrypt(display_name));
+                        jsonParam.put((number));
                         ContactDetails.put(jsonParam);
-                        counter++;
+                        if (number.equals("1111111111")) {
+                            Log.d("log-GetUserContactDetailsFromPhone-D1", "D1 found : " + jsonParam);
+                        }
+                        allContactOfUserEntityList.add(allContactOfUserEntity);
+                    }
+                    counter++;
+                }
+            }
+
+            Set<AllContactOfUserEntity> uniqueContacts = new TreeSet<>(contactComparator);
+            uniqueContacts.addAll(allContactOfUserEntityList);
+            allContactOfUserEntityList = new ArrayList<>(uniqueContacts);
+            Thread tx = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (this) {
+                        for (AllContactOfUserEntity entity :
+                                allContactOfUserEntityList) {
+                            List<AllContactOfUserEntity> x = massegeDao.getSelectedAllContactOfUserEntity(entity.getMobileNumber(), user_login_id);
+                            if (x.size() == 0) {
+                                massegeDao.addAllContactOfUserEntity(entity);
+                            }
+                        }
                     }
                 }
-                Log.d("log-contact", "json array list : " + ContactDetails);
-                params.put("ContactDetails", ContactDetails.toString());
-                return params;
-            }
-        };
-        requestQueue.add(request);
+            });
+            tx.start();
 
+            mainArray.put(y);
+            mainArray.put(ContactDetails);
+            Log.d("log-AllContactOfUserDeviceView", "sending json array of contact : " + ContactDetails);
 
+            JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.POST, endpoint, mainArray, new Response.Listener<JSONArray>() {
+                @Override
+                public void onResponse(JSONArray response) {
+//                        Log.d("log-AllContactOfUserDeviceView", "onResponse: json array list : " + response.toString());
+                    Log.d("log-AllContactOfUserDeviceView", "onResponse: response length : " + response.length());
+                    JSONObject tmp;
+
+                    boolean isUpdatable;
+                    int isUpdatableCount = 0;
+
+                    for (int i = 0; i < response.length(); i++) {
+                        isUpdatable = true;
+                        try {
+                            tmp = response.getJSONObject(i);
+                            long tnum = Long.parseLong(tmp.getString("Number"));
+                            String tCID = tmp.getString("_id");
+                            String name = tmp.getString("Name");
+                            Log.d("log-AllContactOfUserDeviceView", "onResponse: id:" + tCID + " name:" + name + " num:" + tnum);
+//
+                            for (int j = 0; j < connectedContact.size(); j++) {
+                                if (connectedContact.get(0).getMobileNumber() == tnum) {
+                                    isUpdatable = false;
+                                    break;
+                                }
+                            }
+                            if (isUpdatable) {
+                                //update CID
+                                massegeDao.updateAllContactOfUserEntityCID(tnum, tCID, user_login_id);
+//                                        long x = massegeDao.getHighestPriorityRank();
+//                                        ContactWithMassengerEntity new_entity = new ContactWithMassengerEntity(tnum, mc.decrypt(tmp.get(1).toString()), tCID, x+1);
+//                                        massegeDao.SaveContactDetailsInDatabase(new_entity);
+                                isUpdatableCount++;
+                            }
+
+                        } catch (JSONException e) {
+                            Log.d("log-AllContactOfUserDeviceView", "onResponse: jsonException : " + e);
+                        } catch (Exception e) {
+                            Log.d("log-AllContactOfUserDeviceView", "onResponse: Simple Exception : " + e);
+                        }
+                    }
+
+                    Log.d("log-AllContactOfUserDeviceView", "onResponse: isUpdatableCount i s" + isUpdatableCount);
+
+                    callback.execute(1, "sync completed");
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("log-AllContactOfUserDeviceView", "onErrorResponse: setChatDetails error: " + error);
+//                    Toast.makeText(AllContactOfUserInDeviceView.this, "sync failed , Server side error: " + error, Toast.LENGTH_SHORT).show();
+                    callback.execute(0, "sync failed , Server side error : " + error);
+
+                }
+            });
+            jsonArrayRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    0,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+            requestQueue.add(jsonArrayRequest);
+        }
     }
-
-
 }

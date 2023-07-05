@@ -43,7 +43,7 @@ public class Login {
         loginDetailsEntity dataFromDatabase = hold_LoginData.getData();
         if (dataFromDatabase != null) {
             Log.d("log-in login check method  database data is ", " : " + dataFromDatabase.getPassword() + " qnd " + dataFromDatabase.getMobileNumber());
-            long user_login_id = dataFromDatabase.getU_ID();
+            String user_login_id = dataFromDatabase.getUID();
         }
         Log.d("log-login-check method", " not logIned cond. ");
         return 0;

@@ -1,90 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/user_main_massegeView_constraint_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    android:layout_margin="2sp"
+    android:theme="@style/massegeDesignUserRow">
+
+    <TextView
+        android:id="@+id/contact_main_massege_id"
+        android:layout_width="3dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="24dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:text=""
+        android:textSize="5sp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/contact_main_massegeView_constraint_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="2sp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/contact_main_massege_id"
-            android:layout_width="3dp"
-            android:layout_height="1dp"
-            android:layout_marginStart="24dp"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:text=""
-            android:textSize="5sp"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/contact_main_massegeView_constraint_layout_extra"
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="50dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/shapes_contact_massege_design_bg"
+            android:minWidth="120sp"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/contact_main_massege"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text=" textview textview textview textview textview textview textview textview"
+                android:textColor="@color/white"
+                android:textSize="@dimen/MainMassege_size" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:background="@drawable/shapes_contact_massege_design_bg"
-                android:minWidth="120sp"
-                android:orientation="vertical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                android:layout_gravity="end"
+                android:layout_marginEnd="10sp">
 
                 <TextView
-                    android:id="@+id/contact_main_massege"
+                    android:id="@+id/contact_main_massege_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="5dp"
-                    android:text=" textview textview textview textview textview textview textview textview"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/MainMassege_size" />
+                    android:padding="5sp"
+                    android:text="Time Here as 12:00"
+                    android:textColor="@color/MassegeLightWhite"
+                    android:textSize="11sp"
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    android:layout_marginEnd="10sp"
-                    >
-                    <TextView
-                        android:id="@+id/contact_main_massege_time"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:padding="5sp"
-                        android:text="Time Here as 12:00"
-                        android:textColor="@color/MassegeLightWhite"
-                        android:textSize="11sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
 
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                    />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-                        />
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-            </LinearLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

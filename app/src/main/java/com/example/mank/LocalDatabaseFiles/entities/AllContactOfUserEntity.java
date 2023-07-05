@@ -1,5 +1,7 @@
 package com.example.mank.LocalDatabaseFiles.entities;
 
+import static com.example.mank.MainActivity.user_login_id;
+
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -14,34 +16,68 @@ public class AllContactOfUserEntity {
     @ColumnInfo(name = "index")
     public int index;
 
+    @ColumnInfo(name = "AppUserId")
+    private String AppUserId;
+    @ColumnInfo(name = "UserImage")
+    private byte[] UserImage = null;
     @ColumnInfo(name = "MobileNumber")
     public Long MobileNumber;
-
-    @ColumnInfo(name = "C_ID")
-    public long C_ID;
+    @NonNull
+    @ColumnInfo(name = "CID")
+    public String CID;
     @ColumnInfo(name = "DisplayName")
-    public String Display_name;
+    public String DisplayName;
+    @ColumnInfo(name = "About")
+    private String About = "jai shree krushn";
 
-    @ColumnInfo(name ="timestamp")
-    public long timestamp;
+    @ColumnInfo(name = "time")
+    public long time;
+    @ColumnInfo(name = "ImageVersion")
+    private long ImageVersion=0;
 
     public AllContactOfUserEntity() {
     }
 
-    public AllContactOfUserEntity( long MobileNumber, String Display_name,long C_ID ) {
+    public AllContactOfUserEntity(long MobileNumber, String Display_name, String CID) {
         this.MobileNumber = MobileNumber;
-        this.Display_name = Display_name;
-        this.C_ID = C_ID;
-        timestamp = new Date().getTime();
+        this.DisplayName = Display_name;
+        this.CID = CID;
+        time = new Date().getTime();
+        this.AppUserId = user_login_id;
     }
+
+
+    public String getAppUserId() {
+        return AppUserId;
+    }
+
+    public void setAppUserId(String appUserId) {
+        AppUserId = appUserId;
+    }
+
+    public void setImageVersion(long v) {
+        this.ImageVersion = v;
+    }
+    public long getImageVersion() {
+        return this.ImageVersion;
+    }
+
+    public void setAbout(String about) {
+        About = about;
+    }
+
+    public String getAbout() {
+        return About;
+    }
+
     @NonNull
     public void setMobileNumber(Long mobileNumber) {
         this.MobileNumber = mobileNumber;
     }
 
     @NonNull
-    public void setDisplay_name(String Display_name) {
-        this.Display_name = Display_name;
+    public void setDisplayName(String DisplayName) {
+        this.DisplayName = DisplayName;
     }
 
     @NonNull
@@ -50,14 +86,23 @@ public class AllContactOfUserEntity {
     }
 
     @NonNull
-    public String getDisplay_name() {
-        return this.Display_name;
+    public String getDisplayName() {
+        return this.DisplayName;
     }
 
-    public long getC_ID() {
-        return C_ID;
+    public String getCID() {
+        return CID;
     }
-    public  long getTimestamp(){
-        return timestamp;
+
+    public long getTimestamp() {
+        return time;
+    }
+
+    public byte[] getUserImage() {
+        return UserImage;
+    }
+
+    public void setUserImage(byte[] UserImage) {
+        this.UserImage = UserImage;
     }
 }
