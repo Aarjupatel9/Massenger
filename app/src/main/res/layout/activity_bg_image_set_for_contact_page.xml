@@ -63,7 +63,7 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:adjustViewBounds="true"
-            android:background="@drawable/profile_image_border"
+            android:background="@drawable/shape_profile_image_border"
             android:cropToPadding="true"
             android:padding="1dp"
             android:scaleType="centerCrop"

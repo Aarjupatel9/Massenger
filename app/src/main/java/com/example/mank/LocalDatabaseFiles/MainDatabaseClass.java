@@ -16,7 +16,7 @@ import com.example.mank.LocalDatabaseFiles.entities.loginDetailsEntity;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {MassegeEntity.class, loginDetailsEntity.class, ContactWithMassengerEntity.class , SetupFirstTimeEntity.class, AllContactOfUserEntity.class}, version = 4)
+@Database(entities = {MassegeEntity.class, loginDetailsEntity.class, ContactWithMassengerEntity.class , SetupFirstTimeEntity.class, AllContactOfUserEntity.class}, version = 5)
 public abstract class MainDatabaseClass extends RoomDatabase {
     public abstract MassegeDao massegeDao();
 

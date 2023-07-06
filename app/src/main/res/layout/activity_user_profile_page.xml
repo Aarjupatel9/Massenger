@@ -75,7 +75,7 @@
                 android:layout_marginStart="@dimen/user_profile_page_main_marginStart"
                 android:layout_marginTop="@dimen/user_profile_page_main_marginStart"
                 android:adjustViewBounds="true"
-                android:background="@drawable/profile_image_border"
+                android:background="@drawable/shape_profile_image_border"
                 android:cropToPadding="true"
                 android:onClick="ProfilePhotoOnClick"
                 android:padding="1sp"

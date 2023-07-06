@@ -10,6 +10,7 @@ public class holdLoginData {
     loginDetailsEntity data;
 
     public holdLoginData(){
+
         MassegeDao massegeDao = db.massegeDao();
         data = massegeDao.getLoginDetailsFromDatabase();
 

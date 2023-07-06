@@ -7,8 +7,10 @@ import static com.example.mank.configuration.permission_code.STORAGE_PERMISSION_
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -129,7 +131,7 @@ public class AllContactOfUserInDeviceView extends Activity {
         allContactOfUser = contactDetailsHolder.getAllContact();
         setContentDetailsInView();
 
-        syncContactListToServer(connectedContact , disConnectedContact);
+        syncContactListToServer(connectedContact, disConnectedContact);
 //        Thread t = new Thread(new Runnable() {
 //            public void run() {
 //                synchronized (this) {
@@ -274,14 +276,14 @@ public class AllContactOfUserInDeviceView extends Activity {
 
     }
 
-    private void syncContactListToServer( List<AllContactOfUserEntity> connectedContact,  List<AllContactOfUserEntity> disConnectedContact) {
+    private void syncContactListToServer(List<AllContactOfUserEntity> connectedContact, List<AllContactOfUserEntity> disConnectedContact) {
         loadingPB.setVisibility(View.VISIBLE);
         SyncContactDetailsThread scdt = new SyncContactDetailsThread(this, connectedContact, disConnectedContact, new IContactSync() {
             @Override
             public void execute(int status, String massege) {
                 loadingPB.setVisibility(View.GONE);
-                Toast.makeText(AllContactOfUserInDeviceView.this, massege.toString(),Toast.LENGTH_LONG).show();
-                if(status == 1) {
+                Toast.makeText(AllContactOfUserInDeviceView.this, massege.toString(), Toast.LENGTH_LONG).show();
+                if (status == 1) {
                     syncContactListToServerCallBack();
                 }
             }
@@ -289,7 +291,8 @@ public class AllContactOfUserInDeviceView extends Activity {
         scdt.setFromWhere(1);
         scdt.start();
     }
-    public void syncContactListToServerCallBack(){
+
+    public void syncContactListToServerCallBack() {
         synchronized (this) {
             contactDetailsHolderForSync newContactDetailsHolder = new contactDetailsHolderForSync(db);
             connectedContact = newContactDetailsHolder.getConnectedContact();
@@ -413,6 +416,40 @@ public class AllContactOfUserInDeviceView extends Activity {
     }
 
 
+    public void ACOUDVAddNewUserIntoContact(View view) {
+
+        Intent contactIntent = new Intent(ContactsContract.Intents.Insert.ACTION);
+        contactIntent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
+
+        String ContactMobileNumber = "";
+        contactIntent
+                .putExtra(ContactsContract.Intents.Insert.NAME, "")
+                .putExtra(ContactsContract.Intents.Insert.PHONE, String.valueOf(ContactMobileNumber));
+
+        startActivityForResult(contactIntent, ADD_NEW_CONTACT_REQUEST_CODE);
+    }
+
+    private final int ADD_NEW_CONTACT_REQUEST_CODE = 107;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == ADD_NEW_CONTACT_REQUEST_CODE) {
+            start();
+            Log.d("log-onActivityResult", "onActivityResult: contact add activity finished");
+            if (data != null) {
+                Log.d("log-onActivityResult", "onActivityResult: " + resultCode + " | " + data.getData().toString());
+            }
+            if (resultCode == Activity.RESULT_OK) {
+                Toast.makeText(this, "Contact added", Toast.LENGTH_SHORT).show();
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                Toast.makeText(this, "Contact not added", Toast.LENGTH_SHORT).show();
+            }
+
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -425,7 +462,7 @@ public class AllContactOfUserInDeviceView extends Activity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 start();
             } else {
-                Toast.makeText(this, "permission required", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "contact read-write permission required", Toast.LENGTH_LONG).show();
             }
         } else if (requestCode == STORAGE_PERMISSION_CODE) {
             if (grantResults.length <= 0

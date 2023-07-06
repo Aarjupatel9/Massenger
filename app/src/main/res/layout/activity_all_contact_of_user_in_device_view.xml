@@ -98,4 +98,17 @@
         app:layout_constraintTop_toBottomOf="@+id/navBar_of_All_contact_view" />
 
 
+    <ImageButton
+        android:id="@+id/ACOUDVAddContactButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="25dp"
+        android:layout_marginBottom="50dp"
+        android:onClick="ACOUDVAddNewUserIntoContact"
+        android:src="@drawable/baseline_person_add_24"
+        android:backgroundTint="@color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

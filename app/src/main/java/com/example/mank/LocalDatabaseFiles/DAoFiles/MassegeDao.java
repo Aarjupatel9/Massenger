@@ -22,10 +22,10 @@ public interface MassegeDao {
     //massege related query
 
     @Query("SELECT * FROM massege WHERE ((ReceiverId IN (:ReceiverId) or SenderId IN(:ReceiverId)) and AppUserId=:appUserId )order by timeOfSend")
-    List<MassegeEntity> getChat(String ReceiverId,String appUserId);
+    List<MassegeEntity> getChat(String ReceiverId, String appUserId);
 
     @Query("SELECT * FROM massege WHERE ((ReceiverId IN (:ReceiverId) and SenderId IN(:ReceiverId)) and AppUserId=:appUserId) order by timeOfSend")
-    List<MassegeEntity> getSelfChat(String ReceiverId , String appUserId);
+    List<MassegeEntity> getSelfChat(String ReceiverId, String appUserId);
 
 
     @Query("SELECT * FROM massege WHERE (massegeStatus=:status and AppUserId=:appUserId) ")
@@ -33,7 +33,6 @@ public interface MassegeDao {
 
     @Query("SELECT massegeStatus FROM massege WHERE (SenderId=:senderId and ReceiverId=:receiverId and timeOfSend=:time and AppUserId=:appUserId)")
     int getMassegeStatus(String senderId, String receiverId, long time, String appUserId);
-
 
 
     @Query("UPDATE massege SET massegeStatus=:massegeStatus WHERE (SenderId = :SenderId and ReceiverId=:ReceiverId and timeOfSend=:sentTime and AppUserId=:appUserId)")
@@ -64,6 +63,7 @@ public interface MassegeDao {
 
     @Query("UPDATE login SET DisplayUserName = :displayUserName WHERE UID = :u_id")
     int updateDisplayUserName(String displayUserName, String u_id);
+
     @Query("UPDATE login SET About=:about WHERE UID = :u_id")
     int updateAboutUserName(String about, String u_id);
 
@@ -90,14 +90,13 @@ public interface MassegeDao {
     long getHighestPriorityRank(String appUserId);
 
     @Query("update contactDetails set PriorityRank=:PriorityRank where CID=:CID and AppUserId=:appUserId")
-    void setPriorityRank(String CID, long PriorityRank,String appUserId);
+    void setPriorityRank(String CID, long PriorityRank, String appUserId);
 
     @Query("update contactDetails set UserImage=:userImage where (CID=:CID and AppUserId=:appUserId)")
-    int updateImageIntoContactDetails(String CID, byte[] userImage,String appUserId);
+    int updateImageIntoContactDetails(String CID, byte[] userImage, String appUserId);
 
     @Query("select UserImage from contactDetails  where CID=:CID and AppUserId=:appUserId")
     byte[] getSelfUserImage(String CID, String appUserId);
-
 
 
     @Insert
@@ -110,7 +109,13 @@ public interface MassegeDao {
     int removeSelfContactFromContactTable(String CID, String appUserId);
 
     @Query("SELECT ChatId From massege where AppUserId=:appUserId ORDER BY ChatId DESC LIMIT 1")
-    int getLastInsertedMassege(String appUserId);
+    int getLastInsertedMassegeChatId(String appUserId);
+
+    @Query("SELECT massege From massege where (ReceiverId=:CID or SenderId=:CID) and AppUserId=:appUserId ORDER BY ChatId DESC LIMIT 1")
+    String getLastInsertedMassege(String CID, String appUserId);
+
+    @Query("SELECT massege From massege where (ReceiverId=:CID and SenderId=:CID and AppUserId=:appUserId) ORDER BY ChatId DESC LIMIT 1")
+    String getSelfLastInsertedMassege(String CID, String appUserId);
 
     @Query("update contactDetails set NewMassegeArriveValue=(:value) where CID=(:cId) and AppUserId=:appUserId")
     void updateNewMassegeArriveValue(String cId, int value, String appUserId);
@@ -160,7 +165,8 @@ public interface MassegeDao {
 
 
     @Query("update contactDetails set ProfileImageVersion=:ProfileImageVersion where CID=:CID and AppUserId=:appUserId")
-    int updateProfileImageVersion(String CID, long ProfileImageVersion , String appUserId);
+    int updateProfileImageVersion(String CID, long ProfileImageVersion, String appUserId);
+
     @Query("select  ProfileImageVersion from  contactDetails where CID=:CID and AppUserId=:appUserId")
     long getContactProfileImageVersion(String CID, String appUserId);
 }

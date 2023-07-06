@@ -96,7 +96,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             }
         }
 
-        holder.LastMassegeOfContact.setText(String.valueOf(contact.getMobileNumber()));
+        holder.LastMassegeOfContact.setText(String.valueOf(contact.getLastMassege()));
         holder.DPImageButton.setOnClickListener(DpImageClickedFunction(position));
         if (contact.isTouchEffectPass()) {
             holder.constraintLayout.setBackgroundColor(Color.argb(75, 100, 159, 107));
@@ -111,8 +111,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         if (contact.getNewMassegeArriveValue() == 0) {
             holder.new_massege_arrive_value.setText("");
+            holder.new_massege_arrive_value.setPadding(0,0,0,0);
         } else {
             holder.new_massege_arrive_value.setText(String.valueOf(contact.getNewMassegeArriveValue()));
+            holder.new_massege_arrive_value.setMinWidth(65);
         }
 
 

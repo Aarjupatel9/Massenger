@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:adjustViewBounds="true"
-        android:background="@drawable/profile_image_border"
+        android:background="@drawable/shape_profile_image_border"
         android:cropToPadding="true"
         android:padding="1sp"
         tools:srcCompat="@tools:sample/avatars" />

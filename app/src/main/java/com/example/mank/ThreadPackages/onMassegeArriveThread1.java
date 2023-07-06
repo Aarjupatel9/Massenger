@@ -7,6 +7,7 @@ import static com.example.mank.MainActivity.Contact_page_opened_id;
 import static com.example.mank.MainActivity.FetchDataFromServerAndSaveIntoDB;
 import static com.example.mank.MainActivity.MainActivityStaticContext;
 import static com.example.mank.MainActivity.MainContactListHolder;
+import static com.example.mank.MainActivity.contactListAdapter;
 import static com.example.mank.MainActivity.db;
 import static com.example.mank.MainActivity.socket;
 import static com.example.mank.MainActivity.user_login_id;
@@ -104,8 +105,9 @@ public class onMassegeArriveThread1 extends Thread {
                                     public void run() {
                                         long HighestPriority = massegeDao.getHighestPriorityRank(user_login_id);
                                         massegeDao.setPriorityRank(new_massege.getSenderId(), HighestPriority + 1, user_login_id);
-                                        MainContactListHolder.updatePositionOfContact(new_massege.getSenderId(), MainActivityStaticContext);
-
+                                        if(contactListAdapter!=null){
+                                        contactListAdapter.updatePositionOfContact(new_massege.getSenderId(), MainActivityStaticContext);
+                                        }
                                     }
                                 });
                                 setPriorityRankThread.start();

@@ -131,7 +131,7 @@ public class MainActivity extends FragmentActivity {
 
     public static ContactListHolder MainContactListHolder;
 
-    private final int PERMISSION_ALL = 1, PERMISSION_initContentResolver = 2;
+    private final int PERMISSION_ALL = 1, PERMISSION_CONTACT_SYNC = 3,PERMISSION_initContentResolver = 2;
     private final String[] PERMISSIONS = {android.Manifest.permission.INTERNET, android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_NETWORK_STATE, android.Manifest.permission.CHANGE_NETWORK_STATE, android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS,};
     private boolean appOpenFromBackGround = false;
     private boolean EverythingIsOhkInApp = false;
@@ -186,17 +186,17 @@ public class MainActivity extends FragmentActivity {
         WorkManager.getInstance().enqueue(workRequest);
     }
 
-    private void initContentResolver() {
-        ContentResolver contentResolver = getContentResolver();
-        Handler handler = new Handler();
-        MyContentObserver contactsObserver = new MyContentObserver(handler);
-        final String[] PERMISSIONS = {android.Manifest.permission.INTERNET, android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_NETWORK_STATE, android.Manifest.permission.CHANGE_NETWORK_STATE, android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS,};
-        if (!hasPermissions(this, PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_initContentResolver);
-        } else {
-            contentResolver.registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, contactsObserver);
-        }
-    }
+//    private void initContentResolver() {
+//        ContentResolver contentResolver = getContentResolver();
+//        Handler handler = new Handler();
+//        MyContentObserver contactsObserver = new MyContentObserver(handler);
+//        final String[] PERMISSIONS = {android.Manifest.permission.INTERNET, android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_NETWORK_STATE, android.Manifest.permission.CHANGE_NETWORK_STATE, android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS,};
+//        if (!hasPermissions(this, PERMISSIONS)) {
+//            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_initContentResolver);
+//        } else {
+//            contentResolver.registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, contactsObserver);
+//        }
+//    }
 
     @Override
     protected void onResume() {
@@ -245,7 +245,7 @@ public class MainActivity extends FragmentActivity {
             Log.d("log-FinishCode", "onCreate: FinishCode is: " + FinishCode);
             FinishCode = 2;
         } else {
-            initContentResolver();
+//            initContentResolver();
             startMain();
         }
     }
@@ -309,20 +309,28 @@ public class MainActivity extends FragmentActivity {
             }
         });
     }
+
     private void startFirstTimeContactSync() {
         Intent intent = new Intent(this, AllContactOfUserInDeviceView.class);
         startActivityForResult(intent, FirstTimeAppSyncAllContactRequestCode);
 
     }
-    private void startFirstTimeProfileUpdate(){
+
+    private void startFirstTimeProfileUpdate() {
         Intent intent = new Intent(this, UserProfileActivity.class);
         startActivityForResult(intent, FirstTimeProfileUpdateRequestCode);
 
     }
+
     private List<AllContactOfUserEntity> disConnectedContact = new ArrayList<>();
     private List<AllContactOfUserEntity> connectedContact = new ArrayList<>();
 
     public void syncContactAtAppStart() {
+        if (!hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_CONTACT_SYNC);
+            return;
+        }
+
         Thread tf = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -387,7 +395,6 @@ public class MainActivity extends FragmentActivity {
     private final int FirstTimeProfileUpdateRequestCode = 202;
 
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -401,7 +408,7 @@ public class MainActivity extends FragmentActivity {
             if (resultCode == Activity.RESULT_CANCELED) {
                 Log.d("log-onActivityResult", "Activity RESULT_CANCELED");
             }
-        }else if (requestCode == FirstTimeProfileUpdateRequestCode) {
+        } else if (requestCode == FirstTimeProfileUpdateRequestCode) {
             startFirstTimeContactSync();
         } else if (requestCode == FirstTimeAppSyncAllContactRequestCode) {
 //            startMain();
@@ -411,6 +418,7 @@ public class MainActivity extends FragmentActivity {
 
     public void getListOfAllUserContact(View view) {
 //        Toast.makeText(this, "you Click all contact details", Toast.LENGTH_SHORT).show();
+
         Intent intent = new Intent(MainActivity.this, AllContactOfUserInDeviceView.class);
         Log.d("log-getListOfAllUserContact", "calling getListOfAllUserContact activity");
         startActivity(intent);
@@ -634,8 +642,8 @@ public class MainActivity extends FragmentActivity {
 
                         contactListAdapter.practiceMethod(id, profileImageByteArray);// to update contactList
 
-                        if(saveContactProfileImageToStorage(id, profileImageByteArray)){
-                           massegeDao.updateProfileImageVersion(id, ProfileImageVersion, user_login_id);
+                        if (saveContactProfileImageToStorage(id, profileImageByteArray)) {
+                            massegeDao.updateProfileImageVersion(id, ProfileImageVersion, user_login_id);
                         }
                     }
                 }
@@ -671,13 +679,13 @@ public class MainActivity extends FragmentActivity {
             outputStream.flush();
             Log.d("log-saveImageToInternalStorage", "Saved image at path: " + imagePath.getAbsolutePath());
             Log.d("log-saveImageToInternalStorage", "Saved image of size : " + bitmapImage.getWidth() + "*" + bitmapImage.getHeight());
-        return  true;
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
             Log.d("log-saveImageToInternalStorage", "Image Save failed " + e.toString());
         }
         // Print the absolute path of the saved image
-        return  false;
+        return false;
     }
 
     private final Emitter.Listener onMassegeReachReadReceipt = new Emitter.Listener() {
@@ -754,9 +762,9 @@ public class MainActivity extends FragmentActivity {
                     new_massege_time_of_send = (long) new_massege.get("time");
                     ArrayList<ContactWithMassengerEntity> contactArrayList1;
                     contactArrayList1 = contactArrayList;
-
+                    String massege = String.valueOf(new_massege.get("massege"));
                     int viewStatus = 2;
-                    MassegeEntity newMassegeEntity1 = new MassegeEntity(new_massege_sender_id, user_login_id, String.valueOf(new_massege.get("massege")), new_massege_time_of_send, viewStatus);
+                    MassegeEntity newMassegeEntity1 = new MassegeEntity(new_massege_sender_id, user_login_id, massege, new_massege_time_of_send, viewStatus);
 
                     Log.d("log-onMassegeArriveFromServer3", "time : " + new_massege_time_of_send);
                     for (int i = 0; i < contactArrayList1.size(); i++) {
@@ -765,7 +773,6 @@ public class MainActivity extends FragmentActivity {
                             Log.d("log-onMassegeArriveFromServer3", "massege arrive from known sources : ");
                             if (new_massege_sender_id.equals(Contact_page_opened_id)) {
                                 Log.d("log-onMassegeArriveFromServer3", "Contact page is opened");
-
                                 viewStatus = 3;
                                 MassegeEntity newMassegeEntity2 = new MassegeEntity(new_massege_sender_id, user_login_id, String.valueOf(new_massege.get("massege")), new_massege_time_of_send, viewStatus);
                                 massegeListAdapter.addMassege(newMassegeEntity2, 1);//1 contact page is opened
@@ -775,29 +782,28 @@ public class MainActivity extends FragmentActivity {
                             } else {
                                 Log.d("log-onMassegeArriveFromServer3", "Contact page is not opened");
                                 int index = i;
-
+                                ContactWithMassengerEntity contactView = contactArrayList1.get(index);
+                                int prev_value = contactView.getNewMassegeArriveValue();
+                                contactView.setNewMassegeArriveValue(prev_value + 1);
+                                contactView.setLastMassege(massege.toString());
+                                MainActivity.contactArrayList.set(index, contactView);
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
 
-                                        MassegePopSoundThread massegePopSoundThread = new MassegePopSoundThread(MainActivity.this, 1);
-                                        massegePopSoundThread.start();
-                                        Thread t = new Thread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                massegeDao.incrementNewMassegeArriveValue(new_massege_sender_id, user_login_id);
-                                            }
-                                        });
-                                        t.start();
-
-                                        ContactWithMassengerEntity contactView = contactArrayList1.get(index);
-                                        int prev_value = contactView.getNewMassegeArriveValue();
-                                        contactView.setNewMassegeArriveValue(prev_value + 1);
-                                        MainActivity.contactArrayList.set(index, contactView);
                                         MainActivity.recyclerViewAdapter.notifyDataSetChanged();
                                         MainActivity.ChatsRecyclerView.scrollToPosition(MainActivity.recyclerViewAdapter.getItemCountMyOwn());
                                     }
                                 });
+                                MassegePopSoundThread massegePopSoundThread = new MassegePopSoundThread(MainActivity.this, 1);
+                                massegePopSoundThread.start();
+                                Thread t = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        massegeDao.incrementNewMassegeArriveValue(new_massege_sender_id, user_login_id);
+                                    }
+                                });
+                                t.start();
 
                                 Thread massegeInsertIntoDatabase = new Thread(new Runnable() {
                                     @Override
@@ -833,7 +839,9 @@ public class MainActivity extends FragmentActivity {
                                     public void run() {
                                         long HighestPriority = massegeDao.getHighestPriorityRank(user_login_id);
                                         massegeDao.setPriorityRank(newMassegeEntity1.getSenderId(), HighestPriority + 1, user_login_id);
-                                        MainContactListHolder.updatePositionOfContact(newMassegeEntity1.getSenderId(), MainActivity.this);
+                                        if (contactListAdapter != null) {
+                                            contactListAdapter.updatePositionOfContact(newMassegeEntity1.getSenderId(), MainActivity.this);
+                                        }
                                     }
                                 });
                                 setPriorityRankThread.start();
@@ -987,12 +995,22 @@ public class MainActivity extends FragmentActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             } else {
                 Toast.makeText(MainActivity.this, "To use Massenger please give all permissions", Toast.LENGTH_SHORT).show();
-                initContentResolver();
+//                initContentResolver();
+                this.finish();
+            }
+
+        }else if (requestCode == PERMISSION_CONTACT_SYNC) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                syncContactAtAppStart();
+            } else {
+                Toast.makeText(MainActivity.this, "To use Massenger please give Contact and Storage permission", Toast.LENGTH_SHORT).show();
+//                syncContactAtAppStart();
+//                this.finish();
             }
 
         } else if (requestCode == PERMISSION_initContentResolver) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                initContentResolver();
+//                initContentResolver();
             } else {
                 Toast.makeText(MainActivity.this, "To use Massenger you must give the Contact Read and Write permission, please restart the app", Toast.LENGTH_SHORT).show();
 //                initContentResolver();

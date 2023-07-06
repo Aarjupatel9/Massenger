@@ -21,11 +21,12 @@ public class loginDetailsEntity {
 
     public loginDetailsEntity() {
     }
-    public loginDetailsEntity(String UID, @NonNull String Password, Long MobileNumber, String DisplayUserName) {
+    public loginDetailsEntity(String UID, @NonNull String Password, Long MobileNumber, String DisplayUserName , String about) {
         this.Password = Password;
         this.MobileNumber = MobileNumber;
         this.UID = UID;
         this.DisplayUserName = DisplayUserName;
+        this.About = about;
     }
     public String getAbout() {
         return About;

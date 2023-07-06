@@ -42,7 +42,42 @@ public class ContactListAdapter {
         contactList = new ArrayList<>();
         contactList.addAll(data);
 
+        setUpLastMasseges();
         setUpProfileImages();
+    }
+
+    private void setUpLastMasseges() {
+        Thread ts = new Thread(new Runnable() {
+            @SuppressLint("RestrictedApi")
+            @Override
+            public void run() {
+                for (int i = 0; i < contactList.size(); i++) {
+                    if(!contactList.get(i).getCID().equals(user_login_id)){
+                    String massege = massegeDao.getLastInsertedMassege(contactList.get(i).getCID(), user_login_id);
+                    contactList.get(i).setLastMassege(massege);
+                    Log.d("log-ContactListAdapter", "massege is : " + massege+ " for CID : "+contactList.get(i).getCID()+" and appUserId : "+user_login_id);
+                    }else {
+                        String massege = massegeDao.getSelfLastInsertedMassege(contactList.get(i).getCID(), user_login_id);
+                        contactList.get(i).setLastMassege(massege);
+                        Log.d("log-ContactListAdapter-self", "massege is : " + massege+ " for CID : "+contactList.get(i).getCID()+" and appUserId : "+user_login_id);
+                    }
+                }
+                try {
+                    Objects.requireNonNull(getActivity(context)).runOnUiThread(new Runnable() {
+                        @SuppressLint("NotifyDataSetChanged")
+                        @Override
+                        public void run() {
+                            if (recyclerViewAdapter != null) {
+                                recyclerViewAdapter.notifyDataSetChanged();
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+
+                }
+            }
+        });
+        ts.start();
     }
 
     private void setUpProfileImages() {
@@ -97,7 +132,6 @@ public class ContactListAdapter {
         contactList.add(0, newEntity);
         recyclerViewAdapterNotifyLocal();
         Log.d("log-ContactListAdapter", "AddContact method end");
-
     }
 
     public ArrayList<ContactWithMassengerEntity> getContactList() {
@@ -166,5 +200,26 @@ public class ContactListAdapter {
             }
         }
     }
+
+    @SuppressLint({"NotifyDataSetChanged", "RestrictedApi"})
+    public void updatePositionOfContact(String C_ID, Context context) {
+        if (contactArrayList != null) {
+            for (int i = 0; i < contactArrayList.size(); i++) {
+                if (contactArrayList.get(i).getCID().equals(C_ID)) {
+                    ContactWithMassengerEntity x = contactArrayList.remove(i);
+                    contactArrayList.add(0, x);
+                    Objects.requireNonNull(getActivity(context)).runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            recyclerViewAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            }
+        } else {
+            Log.d("log-ContactListAdapter", "contactArrayList is null");
+        }
+    }
+
 
 }

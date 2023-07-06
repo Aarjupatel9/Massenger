@@ -3,6 +3,7 @@ package com.example.mank.ThreadPackages;
 import static com.example.mank.MainActivity.db;
 import static com.example.mank.MainActivity.user_login_id;
 import static com.example.mank.configuration.GlobalVariables.URL_MAIN;
+import static com.example.mank.configuration.permissionMain.hasPermissions;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
@@ -13,6 +14,8 @@ import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -40,11 +43,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class SyncContactDetailsThread extends Thread {
 
+    private static final int PERMISSION_ALL = 108;
     private final Context context;
     private int type = 0;
     private AllContactOfUserEntity allContactOfUserEntity;
@@ -82,6 +87,7 @@ public class SyncContactDetailsThread extends Thread {
 
     public void run() {
         synchronized (this) {
+
             String y = user_login_id;
             JSONArray mainArray = new JSONArray();
             JSONArray ContactDetails = new JSONArray();

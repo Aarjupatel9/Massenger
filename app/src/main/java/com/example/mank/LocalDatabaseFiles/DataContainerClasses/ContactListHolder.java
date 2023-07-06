@@ -22,7 +22,6 @@ public class ContactListHolder {
     private  ArrayList<ContactWithMassengerEntity> MainContactList;
     private boolean pass = false;
     public ContactListHolder(MainDatabaseClass db) {
-
         MassegeDao massegeDao = db.massegeDao();
         data = massegeDao.getContactDetailsFromDatabase(user_login_id);
         MainContactList = new ArrayList<>();
@@ -37,32 +36,5 @@ public class ContactListHolder {
         return data;
     }
 
-    @SuppressLint({"NotifyDataSetChanged", "RestrictedApi"})
-    public void updatePositionOfContact(String C_ID, Context context){
-        synchronized (this) {
-            while (!pass){
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            pass = false;
-            for (int i = 0; i < contactArrayList.size(); i++) {
-                if (contactArrayList.get(i).getCID().equals(C_ID)) {
-                    ContactWithMassengerEntity x = contactArrayList.remove(i);
-                    contactArrayList.add(0, x);
-                    Objects.requireNonNull(getActivity(context)).runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            recyclerViewAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            }
-            pass=true;
-            notifyAll();
-        }
-    }
 
 }

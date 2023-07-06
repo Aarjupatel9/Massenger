@@ -2,6 +2,7 @@ package com.example.mank;
 
 import static com.example.mank.MainActivity.Contact_page_opened_id;
 import static com.example.mank.MainActivity.MainContactListHolder;
+import static com.example.mank.MainActivity.contactListAdapter;
 import static com.example.mank.MainActivity.db;
 import static com.example.mank.MainActivity.socket;
 import static com.example.mank.MainActivity.user_login_id;
@@ -94,23 +95,24 @@ public class ContactMassegeDetailsView extends Activity {
         @Override
         public void call(final Object... args) {
             try {
-                int contact_id = (int) args[0];
-                int online_status = (int) args[1];
-                long last_online_time = (long) args[2];
-                String privacy = (String) args[3];
+                String user_id = (String) args[0];
+                String contact_id = (String) args[1];
+                int type = (int) args[4];
+                int onlineStatusPolicy = (int) args[2];
+                long online_status = (long) args[3];
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (online_status == 1) {
+                        if (type == 1) {
                             online_status_text_area.setText("online");
-                        } else if (online_status == 0) {
+                        } else if (type == 0) {
 //                            Log.d("log-onCheckContactOnlineStatus_return", "call: enter in offline cond.");
-                            if (privacy.equals("private")) {
+                            if (onlineStatusPolicy == 0) {
                                 //if user don't want to show their last seen
                                 online_status_text_area.setText("");
-                            } else {
-                                Date date = new Date(last_online_time);
+                            } else if (onlineStatusPolicy == 1) {
+                                Date date = new Date(online_status);
                                 //here we have to implement some function
                                 Date current_date = new Date();
                                 if (current_date.getYear() == date.getYear() && current_date.getMonth() == date.getMonth() && current_date.getDate() == date.getDate()) {
@@ -294,7 +296,6 @@ public class ContactMassegeDetailsView extends Activity {
 
         startActivityForResult(contactIntent, 106);
 
-
     }
 
     public static float dpToPx(Context context, float valueInDp) {
@@ -329,7 +330,7 @@ public class ContactMassegeDetailsView extends Activity {
 
     private void setLastChatId() {
 
-        lastChatId = massegeDao.getLastInsertedMassege(user_login_id) + 1;
+        lastChatId = massegeDao.getLastInsertedMassegeChatId(user_login_id) + 1;
         Log.d("log-lastchatid", "setLastChatId: last chat is : " + lastChatId);
     }
 
@@ -396,8 +397,8 @@ public class ContactMassegeDetailsView extends Activity {
             public void run() {
                 long HighestPriority = massegeDao.getHighestPriorityRank(user_massege);
                 massegeDao.setPriorityRank(CID, HighestPriority + 1, user_massege);
-                if (MainContactListHolder != null) {
-                    MainContactListHolder.updatePositionOfContact(CID, ContactMassegeDetailsView.this);
+                if (contactListAdapter != null) {
+                    contactListAdapter.updatePositionOfContact(CID, ContactMassegeDetailsView.this);
                 }
             }
         });

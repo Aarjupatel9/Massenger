@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <gradient
+        android:angle="270"
+        android:endColor="@color/new_massege_arrive_colour"
+        android:startColor="@color/new_massege_arrive_colour" />
+
+    <corners android:radius="30dp" />
+
+    <stroke
+        android:width="0dp"
+        android:color="#b4b4b4" />
+</shape>

@@ -13,9 +13,12 @@
     <color name="MainHeaderColorWhiteVarient">#FC0325FF</color>
     <color name="MainHeaderColor">#3636FF</color>
     <color name="MainHeaderColorOld">#147E53</color>
+    <color name="MassegeBoxSuccess">#147E53</color>
+    <color name="MassegeBoxAlert">#982727</color>
     <color name="ContactMassegeBackground">#1E1E1E</color>
     <color name="UserMassegeBackground">#C0C0C0</color>
     <color name="UserMassegeBackgroundOld">#276342</color>
+    <color name="MassegeBoxWarning">#C5C7CA</color>
     <color name="new_massege_arrive_colour">#347A10</color>
     <color name="MassegeLightWhite">#8B8D8E</color>
     <color name="exp">#606263</color>

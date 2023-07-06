@@ -12,20 +12,26 @@
     <include
         android:id="@+id/includeInLoginMaster"
         layout="@layout/activity_login_page_login"
-        tools:layout_editor_absoluteX="24dp"
-        tools:layout_editor_absoluteY="144dp" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20sp"
+        android:padding="10sp"
+        android:layout_marginTop="170sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/massegeAppName" />
 
     <ProgressBar
         android:id="@+id/LoadingPBOfLoginPage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="120dp"
+        android:layout_marginTop="70dp"
         android:indeterminateDrawable="@drawable/shapes_progress_bar_color"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/massegeAppName"
         tools:visibility="visible" />
 
     <TextView
@@ -33,12 +39,13 @@
         style="@style/massegeBoxStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="52dp"
-        android:text="hello i am aarju"
-        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="hello i am aarju"
+        android:layout_marginTop="20sp"
+        android:padding="7sp"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.182"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/massegeAppName" />
 
     <TextView
         android:id="@+id/massegeAppName"

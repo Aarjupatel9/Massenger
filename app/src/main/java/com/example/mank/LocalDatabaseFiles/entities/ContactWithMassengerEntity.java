@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey;
 public class ContactWithMassengerEntity {
     @NonNull
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name="index")
+    @ColumnInfo(name = "index")
     private long index;
     @ColumnInfo(name = "CID")
     private String CID;
@@ -26,7 +26,7 @@ public class ContactWithMassengerEntity {
     @ColumnInfo(name = "UserImage")
     private byte[] UserImage = null;
     @ColumnInfo(name = "ProfileImageVersion")
-    private long ProfileImageVersion=0;
+    private long ProfileImageVersion = 0;
     @ColumnInfo(name = "PriorityRank")
     private long PriorityRank = 0;
     @ColumnInfo(name = "LocallySaved")
@@ -34,6 +34,7 @@ public class ContactWithMassengerEntity {
     @ColumnInfo(name = "NewMassegeArriveValue")
     private int NewMassegeArriveValue = 0;
     private boolean TouchEffectPass = false;
+    private String lastMassege = "";
 
     public ContactWithMassengerEntity() {
     }
@@ -49,9 +50,11 @@ public class ContactWithMassengerEntity {
     public void setProfileImageVersion(long v) {
         this.ProfileImageVersion = v;
     }
+
     public long getProfileImageVersion() {
         return this.ProfileImageVersion;
     }
+
     public void setAppUserId(String appUserId) {
         AppUserId = appUserId;
     }
@@ -163,5 +166,13 @@ public class ContactWithMassengerEntity {
 
     public void setUserImage(byte[] userImage) {
         UserImage = userImage;
+    }
+
+    public void setLastMassege(String massege) {
+        this.lastMassege = massege;
+    }
+
+    public String getLastMassege() {
+        return lastMassege;
     }
 }
