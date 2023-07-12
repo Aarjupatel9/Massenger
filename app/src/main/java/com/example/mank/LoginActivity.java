@@ -1,11 +1,17 @@
 package com.example.mank;
 
+import static com.example.mank.MainActivity.API_SERVER_API_KEY;
 import static com.example.mank.MainActivity.user_login_id;
 import static com.example.mank.configuration.GlobalVariables.URL_MAIN;
+import static com.example.mank.configuration.permissionMain.hasPermissions;
+import static com.example.mank.configuration.permission_code.CONTACT_STORAGE_PERMISSION;
+import static com.example.mank.configuration.permission_code.PERMISSIONS;
+import static com.example.mank.configuration.permission_code.PERMISSION_CONTACT_SYNC;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -22,6 +28,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.room.Room;
 
 import com.android.volley.Request;
@@ -71,7 +79,11 @@ public class LoginActivity extends Activity {
         massegeBox = findViewById(R.id.massegeBoxInLogin);
         loadingPB = findViewById(R.id.LoadingPBOfLoginPage);
 
-        loginRedirect();
+        if (!hasPermissions(this, CONTACT_STORAGE_PERMISSION)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_CONTACT_SYNC);
+        } else {
+            loginRedirect();
+        }
     }
 
     private void registerRedirect() {
@@ -196,38 +208,43 @@ public class LoginActivity extends Activity {
                     String status = respObj.getString("status");
                     Log.d("log-response-status", status);
 
-                    if (status.equals("1")) {
-                        String user_id = (String) respObj.getString("user_id");
-                        String displayName = (String) respObj.getString("displayName");
-                        String about = (String) respObj.getString("about");
-                        long ProfileImageVersion = Long.parseLong(String.valueOf(respObj.getString("ProfileImageVersion")));
-                        String profileImageBase64 = (String) respObj.getString("ProfileImage");
+                    switch (status) {
+                        case "1":
+                            String user_id = (String) respObj.getString("user_id");
+                            String displayName ="";
+                            String about = "";
+                            long ProfileImageVersion = 0;
+                            String profileImageBase64 = null;
+                            try {
+                                displayName = (String) respObj.getString("displayName");
+                                about = (String) respObj.getString("about");
+                                ProfileImageVersion = Long.parseLong(String.valueOf(respObj.getString("ProfileImageVersion")));
+                                profileImageBase64 = (String) respObj.getString("ProfileImage");
+                                byte[] profileImageByteArray = Base64.decode(profileImageBase64, Base64.DEFAULT);
 
-                        Log.d("log-user-id", String.valueOf(user_id));
-
-                        try {
-                            byte[] profileImageByteArray = Base64.decode(profileImageBase64, Base64.DEFAULT);
-
-                            if (profileImageByteArray.length > 0) {
-                                synchronized (this) {
-                                    Bitmap bitmapImage = BitmapFactory.decodeByteArray(profileImageByteArray, 0, profileImageByteArray.length);
-                                    Log.d("log-loginActivity", "Saved image of size : " + profileImageByteArray.length + " and resolution : " + bitmapImage.getWidth() + "*" + bitmapImage.getHeight());
-                                    saveContactProfileImageToStorage(user_id, bitmapImage);
+                                if (profileImageByteArray.length > 0) {
+                                    synchronized (this) {
+                                        Bitmap bitmapImage = BitmapFactory.decodeByteArray(profileImageByteArray, 0, profileImageByteArray.length);
+                                        Log.d("log-loginActivity", "Saved image of size : " + profileImageByteArray.length + " and resolution : " + bitmapImage.getWidth() + "*" + bitmapImage.getHeight());
+                                        saveContactProfileImageToStorage(user_id, bitmapImage);
+                                    }
                                 }
+                            } catch (Exception e) {
+                                Log.d("log-LoginActivity ", "expected image not found at login time : " + e.toString());
                             }
-                        } catch (Exception ex) {
-                            Log.d("log-loginActivity-Exception", ex.toString());
-                        }
 
-                        massegeBox.setTextColor(R.color.MassegeBoxSuccess);
-                        massegeBox.setText("Login successful");
-                        login(user_number, user_password, user_id, displayName, about, ProfileImageVersion);
-                    } else if (status.equals("2")) {
-                        massegeBox.setTextColor(R.color.MassegeBoxWarning);
-                        massegeBox.setText("You have to register with this number, first!!");
-                    } else if (status.equals("0")) {
-                        massegeBox.setTextColor(R.color.MassegeBoxAlert);
-                        massegeBox.setText("Wrong password");
+                            massegeBox.setTextColor(R.color.MassegeBoxSuccess);
+                            massegeBox.setText("Login successful");
+                            login(user_number, user_password, user_id, displayName, about, ProfileImageVersion);
+                            break;
+                        case "2":
+                            massegeBox.setTextColor(R.color.MassegeBoxWarning);
+                            massegeBox.setText("You have to register with this number, first!!");
+                            break;
+                        case "0":
+                            massegeBox.setTextColor(R.color.MassegeBoxAlert);
+                            massegeBox.setText("Wrong password");
+                            break;
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -248,6 +265,15 @@ public class LoginActivity extends Activity {
                 params.put("password", mc.encrypt(user_password));
                 return params;
             }
+
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                Log.d("log-LoginActivity", "apiKey : " + API_SERVER_API_KEY);
+                headers.put("api_key", API_SERVER_API_KEY);
+                return headers;
+            }
+
         };
         requestQueue.add(request);
     }
@@ -261,6 +287,7 @@ public class LoginActivity extends Activity {
         Log.d("log-reached", "before db initialize : " + login_details.getMobileNumber() + " qnd " + login_details.getPassword());
         MainDatabaseClass db = Room.databaseBuilder(getApplicationContext(),
                 MainDatabaseClass.class, "MassengerDatabase").allowMainThreadQueries().build();
+
 
         Log.d("log-reached", "after db initialize");
         MassegeDao massegeDao = db.massegeDao();
@@ -333,10 +360,16 @@ public class LoginActivity extends Activity {
 
                 return params;
             }
+
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("api_key", API_SERVER_API_KEY);
+                return headers;
+            }
         };
         requestQueue.add(request);
     }
-
 
     private void saveContactProfileImageToStorage(String id, Bitmap bitmapImage) {
         File directory = new File(Environment.getExternalStorageDirectory(), "Android/media/com.massenger.mank.main/Pictures/Profiles");
@@ -361,4 +394,15 @@ public class LoginActivity extends Activity {
         Log.d("log-saveImageToInternalStorage", "Saved image path: " + imagePath.getAbsolutePath());
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_CONTACT_SYNC) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                loginRedirect();
+            } else {
+                Toast.makeText(LoginActivity.this, "To use Massenger please give Contact and Storage permission", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }

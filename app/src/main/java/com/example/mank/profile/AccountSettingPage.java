@@ -26,6 +26,10 @@ public class AccountSettingPage extends Activity {
         massegeDao = db.massegeDao();
     }
 
+    public void finishAccountSetting(View view){
+        this.finish();
+    }
+
     public void ACSPLogout(View view) {
         massegeDao.LogOutFromAppForThisUser(user_login_id);
         Intent intent = new Intent(this, MainActivity.class);

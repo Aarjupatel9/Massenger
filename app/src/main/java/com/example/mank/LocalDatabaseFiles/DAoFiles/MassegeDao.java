@@ -150,17 +150,16 @@ public interface MassegeDao {
     @Insert
     void addAllContactOfUserEntity(AllContactOfUserEntity allContactOfUserEntity);
 
-
-    @Query("select  `index`,time , CID,MobileNumber,DisplayName,ImageVersion from allContactDetails where AppUserId=:appUserId")
+    @Query("select  * from allContactDetails where AppUserId=:appUserId")
     List<AllContactOfUserEntity> getAllContactDetailsFromDB(String appUserId);
 
-    @Query("select `index`,time,CID,MobileNumber,DisplayName,ImageVersion from allContactDetails where CID==-1 and AppUserId=:appUserId")
+    @Query("select * from allContactDetails where CID==-1 and AppUserId=:appUserId")
     List<AllContactOfUserEntity> getDisConnectedContactDetailsFromDB(String appUserId);
 
-    @Query("select `index`,time ,CID,MobileNumber,DisplayName,ImageVersion from allContactDetails where CID>-1 and AppUserId=:appUserId")
+    @Query("select * from allContactDetails where CID>-1 and AppUserId=:appUserId")
     List<AllContactOfUserEntity> getConnectedContactDetailsFromDB(String appUserId);
 
-    @Query("select `index`,time ,CID,MobileNumber,ImageVersion from allContactDetails where CID>-1 and AppUserId=:appUserId ")
+    @Query("select * from allContactDetails where CID>-1 and AppUserId=:appUserId ")
     List<AllContactOfUserEntity> getConnectedContactImageList(String appUserId);
 
 

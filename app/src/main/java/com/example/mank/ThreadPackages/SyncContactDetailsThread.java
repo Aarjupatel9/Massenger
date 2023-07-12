@@ -1,5 +1,7 @@
 package com.example.mank.ThreadPackages;
 
+import static android.provider.Settings.Secure.getString;
+import static com.example.mank.MainActivity.API_SERVER_API_KEY;
 import static com.example.mank.MainActivity.db;
 import static com.example.mank.MainActivity.user_login_id;
 import static com.example.mank.configuration.GlobalVariables.URL_MAIN;
@@ -17,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -32,6 +35,7 @@ import com.example.mank.LocalDatabaseFiles.MainDatabaseClass;
 import com.example.mank.LocalDatabaseFiles.entities.AllContactOfUserEntity;
 import com.example.mank.LocalDatabaseFiles.entities.ContactWithMassengerEntity;
 import com.example.mank.MainActivity;
+import com.example.mank.R;
 import com.example.mank.cipher.MyCipher;
 
 import org.json.JSONArray;
@@ -65,7 +69,7 @@ public class SyncContactDetailsThread extends Thread {
         this.context = context;
         massegeDao = db.massegeDao();
         this.connectedContact = connectedContact;
-        this.disConnectedContact =disConnectedContact;
+        this.disConnectedContact = disConnectedContact;
         this.callback = callback;
     }
 
@@ -98,7 +102,7 @@ public class SyncContactDetailsThread extends Thread {
             Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 
             Cursor cursor = contentResolver.query(uri, null, null, null, null);
-            Log.d("log-GetUserContactDetailsFromPhone", "getContacts: total contact is " + cursor.getCount());
+            Log.d("log-SyncContactDetailsThread", "getContacts: total contact is " + cursor.getCount());
 
             if (cursor.getCount() > 0) {
                 int counter = 0;
@@ -117,9 +121,9 @@ public class SyncContactDetailsThread extends Thread {
                             }
                             allContactOfUserEntity = new AllContactOfUserEntity(Long.parseLong(number), display_name, "-1");
                         } catch (IndexOutOfBoundsException e) {
-                            Log.d("log-GetUserContactDetailsFromPhone", "IndexOutOfBoundsException: for " + number + " || " + e);
+                            Log.d("log-SyncContactDetailsThread", "IndexOutOfBoundsException: for " + number + " || " + e);
                         } catch (Exception e) {
-                            Log.d("log-GetUserContactDetailsFromPhone", "Exception: for " + number + " || " + e);
+                            Log.d("log-SyncContactDetailsThread", "Exception: for " + number + " || " + e);
                         }
 
                         JSONArray jsonParam = new JSONArray();
@@ -128,7 +132,7 @@ public class SyncContactDetailsThread extends Thread {
                         jsonParam.put((number));
                         ContactDetails.put(jsonParam);
                         if (number.equals("1111111111")) {
-                            Log.d("log-GetUserContactDetailsFromPhone-D1", "D1 found : " + jsonParam);
+                            Log.d("log-SyncContactDetailsThread-D1", "D1 found : " + jsonParam);
                         }
                         allContactOfUserEntityList.add(allContactOfUserEntity);
                     }
@@ -212,7 +216,17 @@ public class SyncContactDetailsThread extends Thread {
                     callback.execute(0, "sync failed , Server side error : " + error);
 
                 }
-            });
+            }) {
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> headers = new HashMap<>();
+//                     Log.d("log-SyncContactDetailsThread", "apiKey : " + API_SERVER_API_KEY);
+                    headers.put("api_key", API_SERVER_API_KEY);
+                    return headers;
+                }
+            };
+
+
             jsonArrayRequest.setRetryPolicy(new DefaultRetryPolicy(
                     0,
                     DefaultRetryPolicy.DEFAULT_MAX_RETRIES,

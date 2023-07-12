@@ -44,6 +44,7 @@ import com.example.mank.FunctionalityClasses.ContactDetailsFromMassegeViewPage;
 import com.example.mank.LocalDatabaseFiles.DAoFiles.MassegeDao;
 import com.example.mank.LocalDatabaseFiles.DataContainerClasses.ContactMassegeHolder;
 import com.example.mank.LocalDatabaseFiles.MainDatabaseClass;
+import com.example.mank.LocalDatabaseFiles.entities.ContactWithMassengerEntity;
 import com.example.mank.LocalDatabaseFiles.entities.MassegeEntity;
 import com.example.mank.MediaPlayerClasses.DotSound;
 import com.example.mank.MediaPlayerClasses.SoundThread;
@@ -404,6 +405,9 @@ public class ContactMassegeDetailsView extends Activity {
         });
         setPriorityRankThread.start();
 
+        contactListAdapter.setLastMassege(CID, user_massege);
+
+
         Log.d("log-try", "Send_massege_of_user: internet connection is : " + check_internet_connectivity());
         if (check_internet_connectivity()) {
             if (Objects.equals(user_login_id, Contact_page_opened_id)) {
@@ -509,5 +513,9 @@ public class ContactMassegeDetailsView extends Activity {
         }
         final Drawable drawable = VectorDrawableCompat.create(getResources(), R.drawable.baseline_location_on_24, wrapper.getTheme());
         OtherActivityButton.setImageDrawable(drawable);
+    }
+
+    public void FinishCMDVActivity(View view){
+        this.finish();
     }
 }

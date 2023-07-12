@@ -112,9 +112,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         if (contact.getNewMassegeArriveValue() == 0) {
             holder.new_massege_arrive_value.setText("");
             holder.new_massege_arrive_value.setPadding(0,0,0,0);
+            holder.new_massege_arrive_value.setMinWidth(0);
         } else {
             holder.new_massege_arrive_value.setText(String.valueOf(contact.getNewMassegeArriveValue()));
             holder.new_massege_arrive_value.setMinWidth(65);
+            holder.new_massege_arrive_value.setPadding(3,3,3,3);
+
         }
 
 

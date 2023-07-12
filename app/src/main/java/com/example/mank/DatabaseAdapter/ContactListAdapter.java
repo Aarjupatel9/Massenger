@@ -52,14 +52,14 @@ public class ContactListAdapter {
             @Override
             public void run() {
                 for (int i = 0; i < contactList.size(); i++) {
-                    if(!contactList.get(i).getCID().equals(user_login_id)){
-                    String massege = massegeDao.getLastInsertedMassege(contactList.get(i).getCID(), user_login_id);
-                    contactList.get(i).setLastMassege(massege);
-                    Log.d("log-ContactListAdapter", "massege is : " + massege+ " for CID : "+contactList.get(i).getCID()+" and appUserId : "+user_login_id);
-                    }else {
+                    if (!contactList.get(i).getCID().equals(user_login_id)) {
+                        String massege = massegeDao.getLastInsertedMassege(contactList.get(i).getCID(), user_login_id);
+                        contactList.get(i).setLastMassege(massege);
+                        Log.d("log-ContactListAdapter", "massege is : " + massege + " for CID : " + contactList.get(i).getCID() + " and appUserId : " + user_login_id);
+                    } else {
                         String massege = massegeDao.getSelfLastInsertedMassege(contactList.get(i).getCID(), user_login_id);
                         contactList.get(i).setLastMassege(massege);
-                        Log.d("log-ContactListAdapter-self", "massege is : " + massege+ " for CID : "+contactList.get(i).getCID()+" and appUserId : "+user_login_id);
+                        Log.d("log-ContactListAdapter-self", "massege is : " + massege + " for CID : " + contactList.get(i).getCID() + " and appUserId : " + user_login_id);
                     }
                 }
                 try {
@@ -222,4 +222,19 @@ public class ContactListAdapter {
     }
 
 
+    public void setLastMassege(String CID, String massege) {
+        Thread tu = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < contactArrayList.size(); i++) {
+                    ContactWithMassengerEntity contactView = contactArrayList.get(i);
+                    contactView.setLastMassege(massege.toString());
+                    contactArrayList.set(i, contactView);
+
+                    recyclerViewAdapterNotifyLocal();
+                }
+            }
+        });
+        tu.start();
+    }
 }

@@ -449,7 +449,6 @@ public class AllContactOfUserInDeviceView extends Activity {
 
         }
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions,
@@ -465,8 +464,7 @@ public class AllContactOfUserInDeviceView extends Activity {
                 Toast.makeText(this, "contact read-write permission required", Toast.LENGTH_LONG).show();
             }
         } else if (requestCode == STORAGE_PERMISSION_CODE) {
-            if (grantResults.length <= 0
-                    || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(AllContactOfUserInDeviceView.this, "Permission Required", Toast.LENGTH_SHORT).show();
             }
         }

@@ -3,9 +3,21 @@ package com.example.mank;
 import static com.example.mank.ContactMassegeDetailsView.massegeListAdapter;
 import static com.example.mank.configuration.GlobalVariables.URL_MAIN;
 import static com.example.mank.configuration.permissionMain.hasPermissions;
+import static com.example.mank.configuration.permission_code.CAMERA_PERMISSION;
 import static com.example.mank.configuration.permission_code.CAMERA_PERMISSION_CODE;
+import static com.example.mank.configuration.permission_code.CONTACTS_PERMISSION_CODE;
+import static com.example.mank.configuration.permission_code.CONTACT_PERMISSION;
+import static com.example.mank.configuration.permission_code.CONTACT_STORAGE_PERMISSION;
+import static com.example.mank.configuration.permission_code.NETWORK_PERMISSION;
+import static com.example.mank.configuration.permission_code.NETWORK_PERMISSION_CODE;
+import static com.example.mank.configuration.permission_code.PERMISSIONS;
+import static com.example.mank.configuration.permission_code.PERMISSION_ALL;
+import static com.example.mank.configuration.permission_code.PERMISSION_CONTACT_SYNC;
+import static com.example.mank.configuration.permission_code.PERMISSION_initContentResolver;
+import static com.example.mank.configuration.permission_code.STORAGE_PERMISSION;
 import static com.example.mank.configuration.permission_code.STORAGE_PERMISSION_CODE;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -118,6 +130,7 @@ public class MainActivity extends FragmentActivity {
 
     public static String user_login_id;
     public static long UserMobileNumber;
+    public static String API_SERVER_API_KEY;
     private boolean toStopAppMainThread = false;
 
     //global socket variables
@@ -126,13 +139,12 @@ public class MainActivity extends FragmentActivity {
 
     public static RecyclerView ChatsRecyclerView;
     public static RecyclerViewAdapter recyclerViewAdapter;
-    public static ArrayList<ContactWithMassengerEntity> contactArrayList;
+    public static volatile ArrayList<ContactWithMassengerEntity> contactArrayList;
     public static MainDatabaseClass db;
 
     public static ContactListHolder MainContactListHolder;
 
-    private final int PERMISSION_ALL = 1, PERMISSION_CONTACT_SYNC = 3,PERMISSION_initContentResolver = 2;
-    private final String[] PERMISSIONS = {android.Manifest.permission.INTERNET, android.Manifest.permission.CAMERA, android.Manifest.permission.ACCESS_NETWORK_STATE, android.Manifest.permission.CHANGE_NETWORK_STATE, android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS,};
+
     private boolean appOpenFromBackGround = false;
     private boolean EverythingIsOhkInApp = false;
     private SearchView MAPSearchView;
@@ -229,15 +241,29 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         db = Room.databaseBuilder(getApplicationContext(), MainDatabaseClass.class, "MassengerDatabase").fallbackToDestructiveMigration().allowMainThreadQueries().build();
         massegeDao = db.massegeDao();
-
+        API_SERVER_API_KEY = getString(R.string.api_server_api_key);
         verifyLogin(0);
     }
 
     public void verifyLogin(int code) {
         Login login = new Login();
+
         if (!hasPermissions(this, PERMISSIONS)) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
         }
+//        if(!hasPermissions(this, STORAGE_PERMISSION)){
+//            ActivityCompat.requestPermissions(this, STORAGE_PERMISSION,  STORAGE_PERMISSION_CODE);
+//        }
+//        if (!hasPermissions(this, CONTACT_PERMISSION)) {
+//            ActivityCompat.requestPermissions(this, CONTACT_PERMISSION, CONTACTS_PERMISSION_CODE);
+//        }
+//        if (!hasPermissions(this, CAMERA_PERMISSION)) {
+//            ActivityCompat.requestPermissions(this, CAMERA_PERMISSION, CAMERA_PERMISSION_CODE);
+//        }
+//        if (!hasPermissions(this, NETWORK_PERMISSION)) {
+//            ActivityCompat.requestPermissions(this, NETWORK_PERMISSION, NETWORK_PERMISSION_CODE);
+//        }
+
         if (login.isLogIn(db) == 0) {
             Log.d("log-not logined", "onCreate: not login cond. reached");
             Intent intent = new Intent(this, LoginActivity.class);
@@ -326,11 +352,10 @@ public class MainActivity extends FragmentActivity {
     private List<AllContactOfUserEntity> connectedContact = new ArrayList<>();
 
     public void syncContactAtAppStart() {
-        if (!hasPermissions(this, PERMISSIONS)) {
+        if (!hasPermissions(this, CONTACT_STORAGE_PERMISSION)) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_CONTACT_SYNC);
             return;
         }
-
         Thread tf = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -353,7 +378,6 @@ public class MainActivity extends FragmentActivity {
             }
         });
         tf.start();
-
         contactDetailsHolderForSync contactDetailsHolder = new contactDetailsHolderForSync(db);
         connectedContact = contactDetailsHolder.getConnectedContact();
         disConnectedContact = contactDetailsHolder.getDisConnectedContact();
@@ -631,27 +655,30 @@ public class MainActivity extends FragmentActivity {
             String userId = String.valueOf(args[0]);
             String id = String.valueOf(args[1]);
             long ProfileImageVersion = Long.parseLong(String.valueOf(args[3]));
-            String profileImageBase64 = (String) args[2];
+            String profileImageBase64;
             try {
-                byte[] profileImageByteArray = Base64.decode(profileImageBase64, Base64.DEFAULT);
+                profileImageBase64 = (String) args[2];
+                if (profileImageBase64 == null) {
 
-                if (profileImageByteArray.length > 0) {
-                    synchronized (this) {
-                        Bitmap bitmapImage = BitmapFactory.decodeByteArray(profileImageByteArray, 0, profileImageByteArray.length);
-                        Log.d("log-saveImageToInternalStorage", "Saved image of size : " + profileImageByteArray.length + " and resolution : " + bitmapImage.getWidth() + "*" + bitmapImage.getHeight());
+                } else {
+                    byte[] profileImageByteArray = Base64.decode(profileImageBase64, Base64.DEFAULT);
 
-                        contactListAdapter.practiceMethod(id, profileImageByteArray);// to update contactList
+                    if (profileImageByteArray.length > 0) {
+                        synchronized (this) {
+                            Bitmap bitmapImage = BitmapFactory.decodeByteArray(profileImageByteArray, 0, profileImageByteArray.length);
+                            Log.d("log-saveImageToInternalStorage", "Saved image of size : " + profileImageByteArray.length + " and resolution : " + bitmapImage.getWidth() + "*" + bitmapImage.getHeight());
+                            contactListAdapter.practiceMethod(id, profileImageByteArray);// to update contactList
 
-                        if (saveContactProfileImageToStorage(id, profileImageByteArray)) {
-                            massegeDao.updateProfileImageVersion(id, ProfileImageVersion, user_login_id);
+                            if (saveContactProfileImageToStorage(id, profileImageByteArray)) {
+                                massegeDao.updateProfileImageVersion(id, ProfileImageVersion, user_login_id);
+                            }
                         }
                     }
+                    Log.d("log-onUpdateSingleContactProfileImage", "ProfileImageVersion : " + ProfileImageVersion + " and for cid : " + id + " bytearray : " + Arrays.toString(profileImageByteArray));
                 }
-                Log.d("log-onUpdateSingleContactProfileImage", "ProfileImageVersion : " + ProfileImageVersion + " and for cid : " + id + " bytearray : " + Arrays.toString(profileImageByteArray));
             } catch (Exception ex) {
                 Log.d("log-onUpdateSingleContactProfileImage-Exception", ex.toString());
             }
-
         }
     };
 
@@ -781,12 +808,11 @@ public class MainActivity extends FragmentActivity {
 
                             } else {
                                 Log.d("log-onMassegeArriveFromServer3", "Contact page is not opened");
-                                int index = i;
-                                ContactWithMassengerEntity contactView = contactArrayList1.get(index);
+                                ContactWithMassengerEntity contactView = contactArrayList1.get(i);
                                 int prev_value = contactView.getNewMassegeArriveValue();
                                 contactView.setNewMassegeArriveValue(prev_value + 1);
                                 contactView.setLastMassege(massege.toString());
-                                MainActivity.contactArrayList.set(index, contactView);
+                                MainActivity.contactArrayList.set(i, contactView);
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -967,56 +993,6 @@ public class MainActivity extends FragmentActivity {
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == CAMERA_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(MainActivity.this, "Camera Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == STORAGE_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(MainActivity.this, "Storage Permission Denied", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == 1101) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, "Contact Permission Granted", Toast.LENGTH_SHORT).show();
-//                SyncContactDetailsFirstTime();
-            } else {
-//                Toast.makeText(MainActivity.this, "ContactPermission Denied", Toast.LENGTH_SHORT).show();
-                Toast.makeText(MainActivity.this, "To Use Our App YOu must Give the Contact Permission and manual ync Contact Later", Toast.LENGTH_SHORT).show();
-            }
-        } else if (requestCode == PERMISSION_ALL) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            } else {
-                Toast.makeText(MainActivity.this, "To use Massenger please give all permissions", Toast.LENGTH_SHORT).show();
-//                initContentResolver();
-                this.finish();
-            }
-
-        }else if (requestCode == PERMISSION_CONTACT_SYNC) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                syncContactAtAppStart();
-            } else {
-                Toast.makeText(MainActivity.this, "To use Massenger please give Contact and Storage permission", Toast.LENGTH_SHORT).show();
-//                syncContactAtAppStart();
-//                this.finish();
-            }
-
-        } else if (requestCode == PERMISSION_initContentResolver) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                initContentResolver();
-            } else {
-                Toast.makeText(MainActivity.this, "To use Massenger you must give the Contact Read and Write permission, please restart the app", Toast.LENGTH_SHORT).show();
-//                initContentResolver();
-            }
-        }
-    }
 
     private void saveFireBaseTokenToServer(String user_login_id) {
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
@@ -1071,6 +1047,13 @@ public class MainActivity extends FragmentActivity {
                         params.put("tokenFCM", mc.encrypt(token));
                         return params;
                     }
+
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> headers = new HashMap<>();
+                        headers.put("api_key", API_SERVER_API_KEY);
+                        return headers;
+                    }
                 };
                 requestQueue.add(request);
             }
@@ -1116,5 +1099,46 @@ public class MainActivity extends FragmentActivity {
         }
     };
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == CAMERA_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                Toast.makeText(MainActivity.this, "Camera Permission Granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, "Camera Permission needed to use the massenger", Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                Toast.makeText(MainActivity.this, "Storage Permission Granted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, "Storage Permission needed to use the massenger", Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == PERMISSION_ALL) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            } else {
+                Toast.makeText(MainActivity.this, "To use Massenger please give all permissions", Toast.LENGTH_SHORT).show();
+//                initContentResolver();
+//                this.finish();
+            }
+
+        } else if (requestCode == PERMISSION_CONTACT_SYNC) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                syncContactAtAppStart();
+            } else {
+                Toast.makeText(MainActivity.this, "To use Massenger please give Contact and Storage permission", Toast.LENGTH_SHORT).show();
+            }
+
+        } else if (requestCode == PERMISSION_initContentResolver) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                initContentResolver();
+            } else {
+                Toast.makeText(MainActivity.this, "To use Massenger you must give the Contact Read and Write permission, please restart the app", Toast.LENGTH_SHORT).show();
+//                initContentResolver();
+            }
+        }
+    }
 
 }

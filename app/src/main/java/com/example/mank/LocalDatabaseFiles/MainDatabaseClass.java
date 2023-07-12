@@ -16,7 +16,7 @@ import com.example.mank.LocalDatabaseFiles.entities.loginDetailsEntity;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Database(entities = {MassegeEntity.class, loginDetailsEntity.class, ContactWithMassengerEntity.class , SetupFirstTimeEntity.class, AllContactOfUserEntity.class}, version = 5)
+@Database(entities = {MassegeEntity.class, loginDetailsEntity.class, ContactWithMassengerEntity.class, SetupFirstTimeEntity.class, AllContactOfUserEntity.class}, version = 1)
 public abstract class MainDatabaseClass extends RoomDatabase {
     public abstract MassegeDao massegeDao();
 
@@ -25,12 +25,12 @@ public abstract class MainDatabaseClass extends RoomDatabase {
     static final ExecutorService databaseWriteExecutor =
             Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
-    static MainDatabaseClass getDatabase(final Context context) {
+    public static MainDatabaseClass getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (MainDatabaseClass.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                                    MainDatabaseClass.class, "word_database")
+                                    MainDatabaseClass.class, "MassengerDatabase")
                             .build();
                 }
             }

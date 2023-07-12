@@ -31,8 +31,6 @@ public class AllSettingsActivity extends Activity {
 
     private TextView username, aboutInfo;
     private ImageView userProfileImage;
-
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +43,6 @@ public class AllSettingsActivity extends Activity {
 
         setUserDetails();
     }
-
     private void setUserDetails() {
         Thread ts = new Thread(new Runnable() {
             @Override
@@ -95,44 +92,35 @@ public class AllSettingsActivity extends Activity {
         });
         ts.start();
     }
-
     public void SetBbForContactPageLabelOnClick(View view) {
         Intent intent = new Intent(this, BgImageSetForContactPage.class);
         startActivity(intent);
     }
-
-
     public void LaunchUserProfileActivity(View view) {
         Intent intent = new Intent(AllSettingsActivity.this, UserProfileActivity.class);
         startActivity(intent);
     }
-
     public void FinishSettingActivity(View view) {
         this.finish();
     }
-
     public void ProfilePageMainLabelOnClick(View view) {
         Intent intent = new Intent(this, UserProfileActivity.class);
         startActivity(intent);
     }
-
     public void ChatsPageLabelOnClick(View view) {
 //        Intent intent = new Intent(this, UserProfileActivity.class);
 //        startActivity(intent);
         Toast.makeText(AllSettingsActivity.this, "this option coming soon...", Toast.LENGTH_SHORT).show();
     }
-
     public void AccountPageLabelOnClick(View view) {
         Intent intent = new Intent(this, AccountSettingPage.class);
         startActivity(intent);
 //        Toast.makeText(AllSettingsActivity.this, "this option coming soon...", Toast.LENGTH_SHORT).show();
     }
-
     public void PrivacyPageLabelOnClick(View view) {
 //        Intent intent = new Intent(this, UserProfileActivity.class);
 //        startActivity(intent);
         Toast.makeText(AllSettingsActivity.this, "this option coming soon...", Toast.LENGTH_SHORT).show();
     }
-
 
 }

@@ -15,11 +15,8 @@ public class AllContactOfUserEntity {
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "index")
     public int index;
-
     @ColumnInfo(name = "AppUserId")
     private String AppUserId;
-    @ColumnInfo(name = "UserImage")
-    private byte[] UserImage = null;
     @ColumnInfo(name = "MobileNumber")
     public Long MobileNumber;
     @NonNull
@@ -29,21 +26,139 @@ public class AllContactOfUserEntity {
     public String DisplayName;
     @ColumnInfo(name = "About")
     private String About = "jai shree krushn";
-
     @ColumnInfo(name = "time")
     public long time;
     @ColumnInfo(name = "ImageVersion")
-    private long ImageVersion=0;
+    private long ImageVersion = 0;
+
+    @ColumnInfo(name = "es1")
+    private String es1 = "";
+    @ColumnInfo(name = "es2")
+    private String es2 = "";
+    @ColumnInfo(name = "elf2")
+    private long elf2 = 0;
+    @ColumnInfo(name = "elf1")
+    private long elf1 = 0;
+    @ColumnInfo(name = "elf3")
+    private long elf3 = 0;
+    @ColumnInfo(name = "elf4")
+    private long elf4 = 0;
+
 
     public AllContactOfUserEntity() {
     }
 
-    public AllContactOfUserEntity(long MobileNumber, String Display_name, String CID) {
+    public AllContactOfUserEntity(long MobileNumber, String Display_name, @NonNull String CID) {
         this.MobileNumber = MobileNumber;
         this.DisplayName = Display_name;
         this.CID = CID;
         time = new Date().getTime();
         this.AppUserId = user_login_id;
+    }
+
+    public AllContactOfUserEntity(long MobileNumber, String Display_name, @NonNull String CID, String es1, String es2) {
+        this.MobileNumber = MobileNumber;
+        this.DisplayName = Display_name;
+        this.CID = CID;
+        time = new Date().getTime();
+        this.AppUserId = user_login_id;
+        this.es1 = es1;
+        this.es2 = es2;
+    }
+
+    public AllContactOfUserEntity(long MobileNumber, String Display_name, @NonNull String CID, long elf1, long elf2, long elf3, long elf4, String es1, String es2) {
+        this.MobileNumber = MobileNumber;
+        this.DisplayName = Display_name;
+        this.CID = CID;
+        time = new Date().getTime();
+        this.AppUserId = user_login_id;
+        this.elf1 = elf1;
+        this.elf2 = elf2;
+        this.elf3 = elf3;
+        this.elf4 = elf4;
+        this.es1 = es1;
+        this.es2 = es2;
+    }
+
+    public AllContactOfUserEntity(long MobileNumber, String Display_name, @NonNull String CID, long elf1, long elf2, long elf3, long elf4) {
+        this.MobileNumber = MobileNumber;
+        this.DisplayName = Display_name;
+        this.CID = CID;
+        time = new Date().getTime();
+        this.AppUserId = user_login_id;
+        this.elf1 = elf1;
+        this.elf2 = elf2;
+        this.elf3 = elf3;
+        this.elf4 = elf4;
+    }
+
+
+    public long getElf1() {
+        return elf1;
+    }
+
+    public void setElf1(long elf1) {
+        this.elf1 = elf1;
+    }
+
+    public long getElf2() {
+        return elf2;
+    }
+
+    public long getElf3() {
+        return elf3;
+    }
+
+    public long getElf4() {
+        return elf4;
+    }
+
+    public String getEs1() {
+        return es1;
+    }
+
+    public String getEs2() {
+        return es2;
+    }
+
+    public void setEs1(String es1) {
+        this.es1 = es1;
+    }
+
+    public void setElf2(long elf2) {
+        this.elf2 = elf2;
+    }
+
+    public void setElf3(long elf3) {
+        this.elf3 = elf3;
+    }
+
+    public void setElf4(long elf4) {
+        this.elf4 = elf4;
+    }
+
+    public void setEs2(String es2) {
+        this.es2 = es2;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public void setCID(@NonNull String CID) {
+        this.CID = CID;
     }
 
 
@@ -58,6 +173,7 @@ public class AllContactOfUserEntity {
     public void setImageVersion(long v) {
         this.ImageVersion = v;
     }
+
     public long getImageVersion() {
         return this.ImageVersion;
     }
@@ -98,11 +214,4 @@ public class AllContactOfUserEntity {
         return time;
     }
 
-    public byte[] getUserImage() {
-        return UserImage;
-    }
-
-    public void setUserImage(byte[] UserImage) {
-        this.UserImage = UserImage;
-    }
 }

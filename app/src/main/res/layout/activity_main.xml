@@ -18,7 +18,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/HPConstraintLayout1"
             android:layout_width="match_parent"
-            android:layout_height="70dp"
+            android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -40,7 +40,7 @@
             <TextView
                 android:id="@+id/MainSideMenuCaller"
                 android:layout_width="40dp"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginVertical="5sp"
                 android:layout_marginEnd="16dp"
                 android:background="?android:attr/selectableItemBackground"
@@ -57,7 +57,7 @@
 
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:gravity="end"
                 android:paddingVertical="10dp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -68,7 +68,7 @@
                 <androidx.appcompat.widget.SearchView
                     android:id="@+id/MAPSearchView"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/MainSideMenuCaller"
                     app:layout_constraintStart_toEndOf="@+id/title"
@@ -81,7 +81,7 @@
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/MainTabs"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             style="@style/style_MainPageHeader_dark_tabBar"
             app:tabTextColor="@color/dullWhite"
             app:tabSelectedTextColor="@color/white"

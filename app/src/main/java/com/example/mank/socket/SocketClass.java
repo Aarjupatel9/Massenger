@@ -1,5 +1,6 @@
 package com.example.mank.socket;
 
+import static com.example.mank.MainActivity.API_SERVER_API_KEY;
 import static com.example.mank.configuration.GlobalVariables.SOCKET_URL;
 import static java.util.Collections.singletonMap;
 
@@ -18,14 +19,14 @@ public class SocketClass {
 
     private Socket socket;
 
-
     public SocketClass(MainDatabaseClass db) {
         holdLoginData hold_LoginData = new holdLoginData();
         loginDetailsEntity userDetails = hold_LoginData.getData();
 
         if (userDetails != null) {
+            String[] arr = {API_SERVER_API_KEY, userDetails.UID};
             IO.Options options = IO.Options.builder()
-                    .setAuth(singletonMap("token", userDetails.UID))
+                    .setAuth(singletonMap("token", API_SERVER_API_KEY+userDetails.UID))
                     .setPath("/socket.io/")
                     .build();
             try {
@@ -35,14 +36,15 @@ public class SocketClass {
             }
             socket.connect();
         }
-    }
-
-    public Socket getSocket() {
-        return socket;
-    }
-
-    public void joinRoom(String user_login_id) {
-        if (socket != null) {
-            socket.emit("join", user_login_id);
         }
-    }}
+
+        public Socket getSocket () {
+            return socket;
+        }
+
+        public void joinRoom (String user_login_id){
+            if (socket != null) {
+                socket.emit("join", user_login_id);
+            }
+        }
+    }
